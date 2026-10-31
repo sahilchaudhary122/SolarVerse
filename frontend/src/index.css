@@ -1,0 +1,16 @@
+/* Compatibility styles for existing demo pages while they are redesigned later. */
+.glass-panel {
+  border: 1px solid var(--sv-border);
+  background-color: var(--sv-surface);
+  box-shadow: var(--shadow-card);
+}
+
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.animate-fade-in-up { animation: fadeInUp 300ms ease-out both; }
+.animate-fade-in { animation: fadeInUp 250ms ease-out both; }
+.delay-100 { animation-delay: 100ms; }
+.delay-200 { animation-delay: 200ms; }
+.delay-300 { animation-delay: 300ms; }

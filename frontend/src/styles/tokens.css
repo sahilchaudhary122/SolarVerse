@@ -1,0 +1,86 @@
+@import "tailwindcss";
+@custom-variant dark (&:where(.dark, .dark *));
+
+:root {
+  color-scheme: light;
+  --sv-brand: #176B50;
+  --sv-brand-strong: #123D32;
+  --sv-brand-fresh: #36A875;
+  --sv-brand-soft: #E6F4EC;
+  --sv-accent: #176B50;
+  --sv-bg: #F6F8F6;
+  --sv-surface: #FFFFFF;
+  --sv-surface-raised: #F0F5F1;
+  --sv-text: #17251F;
+  --sv-muted: #53635B;
+  --sv-border: #D8E3DC;
+  --sv-focus: #176B50;
+  --sv-success: #217A4B;
+  --sv-warning: #9A5A00;
+  --sv-danger: #B4232F;
+  --sv-info: #245C9C;
+  --sv-brand-panel: #123D32;
+  --accent: var(--sv-brand);
+  --accent-bg: var(--sv-brand-soft);
+  --accent-border: var(--sv-brand-fresh);
+  --border: var(--sv-border);
+  --text-h: var(--sv-text);
+  --social-bg: var(--sv-surface-raised);
+  --sv-radius-sm: 6px;
+  --sv-radius-md: 10px;
+  --sv-radius-lg: 16px;
+  --shadow-card: 0 2px 8px rgb(23 33 43 / 5%);
+  --app-font-sans: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+.dark {
+  color-scheme: dark;
+  --sv-brand: #36A875;
+  --sv-brand-strong: #55BD89;
+  --sv-brand-fresh: #69CC98;
+  --sv-brand-soft: #1A382B;
+  --sv-accent: #69CC98;
+  --sv-bg: #101815;
+  --sv-surface: #17221D;
+  --sv-surface-raised: #1E2B24;
+  --sv-text: #F1F6F3;
+  --sv-muted: #B2C2B8;
+  --sv-border: #34463B;
+  --sv-focus: #69CC98;
+  --sv-brand-panel: #0F2920;
+  --accent: var(--sv-brand);
+  --accent-bg: var(--sv-brand-soft);
+  --accent-border: var(--sv-brand-fresh);
+  --border: var(--sv-border);
+  --text-h: var(--sv-text);
+  --social-bg: var(--sv-surface-raised);
+  --sv-success: #67D39A;
+  --sv-warning: #FFC66D;
+  --sv-danger: #FF8C94;
+  --sv-info: #8ABEFF;
+  --shadow-card: 0 2px 12px rgb(0 0 0 / 18%);
+}
+
+@theme inline {
+  --color-brand: var(--sv-brand);
+  --color-brand-strong: var(--sv-brand-strong);
+  --color-brand-fresh: var(--sv-brand-fresh);
+  --color-brand-soft: var(--sv-brand-soft);
+  --color-accent: var(--sv-accent);
+  --color-app-bg: var(--sv-bg);
+  --color-surface: var(--sv-surface);
+  --color-surface-raised: var(--sv-surface-raised);
+  --color-app-text: var(--sv-text);
+  --color-muted: var(--sv-muted);
+  --color-border: var(--sv-border);
+  --color-focus: var(--sv-focus);
+  --color-success: var(--sv-success);
+  --color-warning: var(--sv-warning);
+  --color-danger: var(--sv-danger);
+  --color-info: var(--sv-info);
+  --color-brand-panel: var(--sv-brand-panel);
+  --radius-sm: var(--sv-radius-sm);
+  --radius-md: var(--sv-radius-md);
+  --radius-lg: var(--sv-radius-lg);
+  --font-sans: var(--app-font-sans);
+}
