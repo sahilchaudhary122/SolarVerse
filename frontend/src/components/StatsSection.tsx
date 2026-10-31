@@ -29,7 +29,7 @@ export function StatsSection() {
   ]
 
   return (
-    <section className="py-20 bg-amber-500 dark:bg-gray-900 transition-colors text-gray-900 dark:text-white">
+    <section className="py-20 bg-brand-strong dark:bg-brand-panel transition-colors text-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
           {stats.map((stat, index) => {
@@ -37,10 +37,10 @@ export function StatsSection() {
             return (
               <div
                 key={index}
-                className="bg-amber-400/50 dark:bg-gray-800 border border-amber-300/40 dark:border-gray-700 rounded-3xl p-8 hover:-translate-y-1 hover:shadow-xl transition-all duration-300 flex flex-col justify-between group"
+                className="bg-brand-fresh/20 dark:bg-gray-800 border border-brand/30 dark:border-gray-700 rounded-3xl p-8 hover:-translate-y-1 hover:shadow-xl transition-all duration-300 flex flex-col justify-between group"
               >
                 <div className="flex items-center justify-between mb-6">
-                  <div className="w-14 h-14 rounded-2xl bg-white/20 dark:bg-amber-500/10 flex items-center justify-center text-gray-900 dark:text-amber-400 group-hover:scale-110 transition-transform">
+                  <div className="w-14 h-14 rounded-2xl bg-white/20 dark:bg-brand/10 flex items-center justify-center text-brand-strong dark:text-brand-fresh group-hover:scale-110 transition-transform">
                     <Icon className="w-7 h-7" />
                   </div>
                   <span className="text-3xl sm:text-4xl font-black tracking-tight">

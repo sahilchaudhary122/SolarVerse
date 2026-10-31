@@ -24,7 +24,7 @@ export function Dashboard() {
       <aside className="w-full md:w-64 glass-panel md:min-h-screen p-6 flex flex-col justify-between shrink-0 border-r border-gray-200 dark:border-gray-800">
         <div className="space-y-8">
           <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 rounded-xl bg-amber-500/10 flex items-center justify-center text-amber-500">
+            <div className="w-10 h-10 rounded-xl bg-brand/10 flex items-center justify-center text-brand">
               <Sun className="w-6 h-6" />
             </div>
             <span className="text-xl font-black tracking-tight">SolarVerse</span>
@@ -35,8 +35,8 @@ export function Dashboard() {
               to="/dashboard"
               className={`flex items-center space-x-3 px-4 py-3 rounded-xl font-bold transition ${
                 location.pathname === '/dashboard'
-                  ? 'bg-amber-500 text-gray-900 shadow-md'
-                  : 'hover:bg-amber-500/10 text-gray-700 dark:text-gray-300'
+                  ? 'bg-brand text-white dark:text-gray-950 shadow-md'
+                  : 'hover:bg-brand/10 text-gray-700 dark:text-gray-300'
               }`}
             >
               <BarChart3 className="w-5 h-5" />
@@ -45,7 +45,7 @@ export function Dashboard() {
 
             <Link
               to="/quote-builder"
-              className="flex items-center space-x-3 px-4 py-3 rounded-xl hover:bg-amber-500/10 text-gray-700 dark:text-gray-300 font-semibold transition"
+              className="flex items-center space-x-3 px-4 py-3 rounded-xl hover:bg-brand/10 text-gray-700 dark:text-gray-300 font-semibold transition"
             >
               <Calculator className="w-5 h-5" />
               <span>Quote Builder</span>
@@ -55,11 +55,11 @@ export function Dashboard() {
               to="/dashboard/scanner"
               className={`flex items-center space-x-3 px-4 py-3 rounded-xl font-semibold transition ${
                 location.pathname === '/dashboard/scanner'
-                  ? 'bg-amber-500/20 text-amber-600 dark:text-amber-400 font-bold'
-                  : 'hover:bg-amber-500/10 text-gray-700 dark:text-gray-300'
+                  ? 'bg-brand/20 text-brand dark:text-brand font-bold'
+                  : 'hover:bg-brand/10 text-gray-700 dark:text-gray-300'
               }`}
             >
-              <QrCode className="w-5 h-5 text-amber-500" />
+              <QrCode className="w-5 h-5 text-brand" />
               <span>Scanner</span>
             </Link>
 
@@ -67,11 +67,11 @@ export function Dashboard() {
               to="/dashboard/installation"
               className={`flex items-center space-x-3 px-4 py-3 rounded-xl font-semibold transition ${
                 location.pathname === '/dashboard/installation'
-                  ? 'bg-amber-500/20 text-amber-600 dark:text-amber-400 font-bold'
-                  : 'hover:bg-amber-500/10 text-gray-700 dark:text-gray-300'
+                  ? 'bg-brand/20 text-brand dark:text-brand font-bold'
+                  : 'hover:bg-brand/10 text-gray-700 dark:text-gray-300'
               }`}
             >
-              <Wrench className="w-5 h-5 text-amber-500" />
+              <Wrench className="w-5 h-5 text-brand" />
               <span>Installation</span>
             </Link>
 
@@ -79,11 +79,11 @@ export function Dashboard() {
               to="/dashboard/warranty"
               className={`flex items-center space-x-3 px-4 py-3 rounded-xl font-semibold transition ${
                 location.pathname === '/dashboard/warranty'
-                  ? 'bg-amber-500/20 text-amber-600 dark:text-amber-400 font-bold'
-                  : 'hover:bg-amber-500/10 text-gray-700 dark:text-gray-300'
+                  ? 'bg-brand/20 text-brand dark:text-brand font-bold'
+                  : 'hover:bg-brand/10 text-gray-700 dark:text-gray-300'
               }`}
             >
-              <ShieldCheck className="w-5 h-5 text-amber-500" />
+              <ShieldCheck className="w-5 h-5 text-brand" />
               <span>Warranty</span>
             </Link>
 
@@ -91,11 +91,11 @@ export function Dashboard() {
               to="/dashboard/tickets"
               className={`flex items-center space-x-3 px-4 py-3 rounded-xl font-semibold transition ${
                 location.pathname === '/dashboard/tickets'
-                  ? 'bg-amber-500/20 text-amber-600 dark:text-amber-400 font-bold'
-                  : 'hover:bg-amber-500/10 text-gray-700 dark:text-gray-300'
+                  ? 'bg-brand/20 text-brand dark:text-brand font-bold'
+                  : 'hover:bg-brand/10 text-gray-700 dark:text-gray-300'
               }`}
             >
-              <LifeBuoy className="w-5 h-5 text-amber-500" />
+              <LifeBuoy className="w-5 h-5 text-brand" />
               <span>Tickets</span>
             </Link>
 
@@ -103,11 +103,11 @@ export function Dashboard() {
               to="/dashboard/enquiries"
               className={`flex items-center space-x-3 px-4 py-3 rounded-xl font-semibold transition ${
                 location.pathname === '/dashboard/enquiries'
-                  ? 'bg-amber-500/20 text-amber-600 dark:text-amber-400 font-bold'
-                  : 'hover:bg-amber-500/10 text-gray-700 dark:text-gray-300'
+                  ? 'bg-brand/20 text-brand dark:text-brand font-bold'
+                  : 'hover:bg-brand/10 text-gray-700 dark:text-gray-300'
               }`}
             >
-              <Users className="w-5 h-5 text-amber-500" />
+              <Users className="w-5 h-5 text-brand" />
               <span>Enquiries List</span>
             </Link>
 
@@ -115,11 +115,11 @@ export function Dashboard() {
               to="/dashboard/survey"
               className={`flex items-center space-x-3 px-4 py-3 rounded-xl font-semibold transition ${
                 location.pathname === '/dashboard/survey'
-                  ? 'bg-amber-500/20 text-amber-600 dark:text-amber-400 font-bold'
-                  : 'hover:bg-amber-500/10 text-gray-700 dark:text-gray-300'
+                  ? 'bg-brand/20 text-brand dark:text-brand font-bold'
+                  : 'hover:bg-brand/10 text-gray-700 dark:text-gray-300'
               }`}
             >
-              <Compass className="w-5 h-5 text-amber-500" />
+              <Compass className="w-5 h-5 text-brand" />
               <span>Site Survey</span>
             </Link>
 
@@ -127,11 +127,11 @@ export function Dashboard() {
               to="/dashboard/orders"
               className={`flex items-center space-x-3 px-4 py-3 rounded-xl font-semibold transition ${
                 location.pathname === '/dashboard/orders'
-                  ? 'bg-amber-500/20 text-amber-600 dark:text-amber-400 font-bold'
-                  : 'hover:bg-amber-500/10 text-gray-700 dark:text-gray-300'
+                  ? 'bg-brand/20 text-brand dark:text-brand font-bold'
+                  : 'hover:bg-brand/10 text-gray-700 dark:text-gray-300'
               }`}
             >
-              <CreditCard className="w-5 h-5 text-amber-500" />
+              <CreditCard className="w-5 h-5 text-brand" />
               <span>Orders & Payments</span>
             </Link>
           </nav>
@@ -139,7 +139,7 @@ export function Dashboard() {
 
         <div className="pt-6 border-t border-gray-200/50 dark:border-gray-800">
           <Link to="/" className="flex items-center space-x-3 px-4 py-3 rounded-xl bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-sm font-semibold transition">
-            <Home className="w-5 h-5 text-amber-500" />
+            <Home className="w-5 h-5 text-brand" />
             <span>Back to Home</span>
           </Link>
         </div>
@@ -174,7 +174,7 @@ export function Dashboard() {
 
             <Link
               to="/quote-builder"
-              className="px-4 py-2.5 bg-amber-500 hover:bg-amber-600 text-gray-900 font-bold text-sm rounded-xl shadow-md hover:shadow-[0_0_15px_rgba(245,158,11,0.4)] transition"
+              className="px-4 py-2.5 bg-brand hover:bg-brand-strong text-white dark:text-gray-950 font-bold text-sm rounded-xl shadow-md hover:shadow-[0_0_15px_color-mix(in_srgb,var(--sv-brand)_40%,transparent)] transition"
             >
               + New Quote
             </Link>
@@ -182,16 +182,19 @@ export function Dashboard() {
         </header>
 
         <main className="flex-1 p-6 sm:p-10 space-y-8 max-w-7xl w-full mx-auto">
+          <div role="note" className="rounded-xl border border-warning/30 bg-warning/10 px-4 py-3 text-sm font-medium text-warning">
+            Demo data: dashboard figures and the role preview below are sample UI content, not live SolarVerse records or permissions.
+          </div>
           {/* RBAC Conditional KPI Cards */}
           {(userRole === 'management' || userRole === 'system_admin' || userRole === 'service_manager' || userRole === 'finance') && (
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 animate-fade-in">
               {/* KPI 1 */}
               <div className="glass-panel p-6 rounded-3xl space-y-4 hover:-translate-y-1 transition-all">
                 <div className="flex items-center justify-between">
-                  <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-amber-500 to-orange-500 flex items-center justify-center text-gray-900 shadow-lg">
+                  <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-brand-strong to-brand flex items-center justify-center text-white dark:text-gray-950 shadow-lg">
                     <BarChart3 className="w-6 h-6" />
                   </div>
-                  <span className="px-2.5 py-1 rounded-full bg-green-500/10 text-green-600 dark:text-green-400 font-bold text-xs flex items-center gap-0.5">
+                  <span className="px-2.5 py-1 rounded-full bg-brand/10 text-brand font-bold text-xs flex items-center gap-0.5">
                     <ArrowUpRight className="w-3.5 h-3.5" /> +22.4%
                   </span>
                 </div>
@@ -207,10 +210,10 @@ export function Dashboard() {
                 className="glass-panel p-6 rounded-3xl space-y-4 cursor-pointer hover:-translate-y-1 transition-all duration-300"
               >
                 <div className="flex items-center justify-between">
-                  <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center text-gray-900 shadow-lg">
+                  <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-brand to-brand-strong flex items-center justify-center text-white dark:text-gray-950 shadow-lg">
                     <Wrench className="w-6 h-6" />
                   </div>
-                  <span className="px-2.5 py-1 rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400 font-bold text-xs">
+                  <span className="px-2.5 py-1 rounded-full bg-warning/10 text-warning font-bold text-xs">
                     3 Today
                   </span>
                 </div>
@@ -226,10 +229,10 @@ export function Dashboard() {
                 className="glass-panel p-6 rounded-3xl space-y-4 cursor-pointer hover:-translate-y-1 transition-all duration-300"
               >
                 <div className="flex items-center justify-between">
-                  <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-orange-500 to-red-500 flex items-center justify-center text-white shadow-lg">
+                  <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-warning to-danger flex items-center justify-center text-white shadow-lg">
                     <Users className="w-6 h-6" />
                   </div>
-                  <span className="px-2.5 py-1 rounded-full bg-orange-500/10 text-orange-600 dark:text-orange-400 font-bold text-xs">
+                  <span className="px-2.5 py-1 rounded-full bg-danger/10 text-danger font-bold text-xs">
                     2 Urgent
                   </span>
                 </div>
@@ -260,10 +263,10 @@ export function Dashboard() {
 
               <div className="glass-panel p-6 rounded-3xl space-y-4">
                 <div className="flex items-center justify-between">
-                  <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-amber-500 to-yellow-500 flex items-center justify-center text-gray-900 shadow-lg">
+                  <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-brand-strong to-brand flex items-center justify-center text-white dark:text-gray-950 shadow-lg">
                     <ShieldCheck className="w-6 h-6" />
                   </div>
-                  <span className="px-2.5 py-1 rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400 font-bold text-xs">
+                  <span className="px-2.5 py-1 rounded-full bg-warning/10 text-warning font-bold text-xs">
                     Awaiting Inspection
                   </span>
                 </div>
@@ -282,10 +285,10 @@ export function Dashboard() {
                 className="glass-panel p-6 rounded-3xl space-y-4 cursor-pointer hover:-translate-y-1 transition"
               >
                 <div className="flex items-center justify-between">
-                  <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center text-white shadow-lg">
+                  <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-brand-strong to-brand flex items-center justify-center text-white dark:text-gray-950 shadow-lg">
                     <Wrench className="w-6 h-6" />
                   </div>
-                  <span className="px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-bold text-xs">
+                  <span className="px-2.5 py-1 rounded-full bg-brand/10 text-brand font-bold text-xs">
                     Field Ops
                   </span>
                 </div>
@@ -334,10 +337,10 @@ export function Dashboard() {
 
               <div className="glass-panel p-6 rounded-3xl space-y-4">
                 <div className="flex items-center justify-between">
-                  <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-amber-500 to-orange-500 flex items-center justify-center text-gray-900 shadow-lg">
+                  <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-brand-strong to-brand flex items-center justify-center text-white dark:text-gray-950 shadow-lg">
                     <ShieldCheck className="w-6 h-6" />
                   </div>
-                  <span className="px-2.5 py-1 rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400 font-bold text-xs">
+                  <span className="px-2.5 py-1 rounded-full bg-warning/10 text-warning font-bold text-xs">
                     Restock Needed
                   </span>
                 </div>
@@ -353,10 +356,10 @@ export function Dashboard() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-fade-in">
               <div className="glass-panel p-6 rounded-3xl space-y-4">
                 <div className="flex items-center justify-between">
-                  <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-teal-500 to-cyan-600 flex items-center justify-center text-white shadow-lg">
+                  <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-brand to-brand-strong flex items-center justify-center text-white dark:text-gray-950 shadow-lg">
                     <Sun className="w-6 h-6" />
                   </div>
-                  <span className="px-2.5 py-1 rounded-full bg-teal-500/10 text-teal-600 dark:text-teal-400 font-bold text-xs">
+                  <span className="px-2.5 py-1 rounded-full bg-brand/10 text-brand font-bold text-xs">
                     Site Surveys
                   </span>
                 </div>
@@ -368,10 +371,10 @@ export function Dashboard() {
 
               <div className="glass-panel p-6 rounded-3xl space-y-4">
                 <div className="flex items-center justify-between">
-                  <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center text-white shadow-lg">
+                  <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-brand-strong to-brand flex items-center justify-center text-white dark:text-gray-950 shadow-lg">
                     <CheckCircle2 className="w-6 h-6" />
                   </div>
-                  <span className="px-2.5 py-1 rounded-full bg-green-500/10 text-green-600 dark:text-green-400 font-bold text-xs">
+                  <span className="px-2.5 py-1 rounded-full bg-brand/10 text-brand font-bold text-xs">
                     Ready for Approval
                   </span>
                 </div>
@@ -388,12 +391,12 @@ export function Dashboard() {
             <div className="flex items-center justify-between flex-wrap gap-4">
               <div>
                 <h3 className="text-xl font-bold flex items-center gap-2">
-                  <ShieldCheck className="w-5 h-5 text-amber-500" /> Revenue Growth (Last 6 Months)
+                  <ShieldCheck className="w-5 h-5 text-brand" /> Revenue Growth (Last 6 Months)
                 </h3>
                 <p className="text-xs text-gray-500 dark:text-gray-400">Monthly gross turnover in Indian Rupees (₹)</p>
               </div>
               <div className="flex items-center space-x-2">
-                <span className="w-3 h-3 rounded-full bg-amber-500 inline-block" />
+                <span className="w-3 h-3 rounded-full bg-brand inline-block" />
                 <span className="text-xs font-semibold text-gray-600 dark:text-gray-300">Revenue (₹)</span>
               </div>
             </div>
@@ -402,18 +405,18 @@ export function Dashboard() {
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={revenueData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
                   <CartesianGrid strokeDasharray="3 3" opacity={0.15} />
-                  <XAxis dataKey="month" stroke="#9ca3af" fontSize={12} tickLine={false} />
+                  <XAxis dataKey="month" stroke="var(--sv-muted)" fontSize={12} tickLine={false} />
                   <YAxis 
-                    stroke="#9ca3af" 
+                    stroke="var(--sv-muted)" 
                     fontSize={12} 
                     tickLine={false}
                     tickFormatter={(value) => `₹${value / 100000}L`}
                   />
                   <Tooltip 
                     formatter={(value: any) => [`₹${Number(value).toLocaleString('en-IN')}`, 'Revenue']}
-                    contentStyle={{ backgroundColor: 'rgba(15, 23, 42, 0.9)', borderRadius: '1rem', border: '1px solid rgba(255,255,255,0.1)', color: '#fff' }}
+                    contentStyle={{ backgroundColor: 'var(--sv-surface)', borderRadius: '1rem', border: '1px solid var(--sv-border)', color: 'var(--sv-text)' }}
                   />
-                  <Bar dataKey="revenue" fill="#f59e0b" radius={[8, 8, 0, 0]} />
+                  <Bar dataKey="revenue" fill="var(--sv-brand)" radius={[8, 8, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             </div>

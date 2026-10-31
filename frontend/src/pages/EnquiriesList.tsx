@@ -82,9 +82,9 @@ export function EnquiriesList() {
       case 'contacted':
         return <span className="px-3 py-1 rounded-full bg-yellow-500/10 text-yellow-600 dark:text-yellow-400 font-bold text-xs border border-yellow-500/20">Contacted</span>
       case 'survey_pending':
-        return <span className="px-3 py-1 rounded-full bg-orange-500/10 text-orange-600 dark:text-orange-400 font-bold text-xs border border-orange-500/20">Survey Pending</span>
+        return <span className="px-3 py-1 rounded-full bg-warning/10 text-warning font-bold text-xs border border-warning/20">Survey Pending</span>
       case 'converted':
-        return <span className="px-3 py-1 rounded-full bg-green-500/10 text-green-600 dark:text-green-400 font-bold text-xs border border-green-500/20">Converted</span>
+        return <span className="px-3 py-1 rounded-full bg-success/10 text-success dark:text-success font-bold text-xs border border-success/20">Converted</span>
       case 'quoted':
         return <span className="px-3 py-1 rounded-full bg-purple-500/10 text-purple-600 dark:text-purple-400 font-bold text-xs border border-purple-500/20">Quoted</span>
       default:
@@ -100,7 +100,7 @@ export function EnquiriesList() {
           <Link to="/dashboard" className="p-2 rounded-xl bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition">
             <ArrowLeft className="w-5 h-5 text-gray-700 dark:text-gray-300" />
           </Link>
-          <div className="w-10 h-10 rounded-xl bg-amber-500/10 flex items-center justify-center text-amber-500">
+          <div className="w-10 h-10 rounded-xl bg-brand/10 flex items-center justify-center text-brand">
             <Users className="w-6 h-6" />
           </div>
           <div>
@@ -111,7 +111,7 @@ export function EnquiriesList() {
         <div className="flex items-center gap-3">
           <Link
             to="/quote-builder"
-            className="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-gray-900 font-bold text-sm rounded-xl shadow-md transition"
+            className="px-4 py-2 bg-brand hover:bg-brand-strong text-white dark:text-gray-950 font-bold text-sm rounded-xl shadow-md transition"
           >
             + New Quote
           </Link>
@@ -135,7 +135,7 @@ export function EnquiriesList() {
               placeholder="Search by customer, phone, location..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-12 pr-4 py-3 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 transition"
+              className="w-full pl-12 pr-4 py-3 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl text-sm focus:outline-none focus:ring-2 focus:ring-focus transition"
             />
           </div>
 
@@ -144,7 +144,7 @@ export function EnquiriesList() {
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="px-4 py-3 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-amber-500 transition capitalize"
+              className="px-4 py-3 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-focus transition capitalize"
             >
               <option value="all">All Statuses</option>
               <option value="new">New (Blue)</option>
@@ -179,9 +179,9 @@ export function EnquiriesList() {
                   </tr>
                 ) : (
                   filteredEnquiries.map((enq) => (
-                    <tr key={enq.id} className="hover:bg-amber-500/5 transition-colors group">
+                    <tr key={enq.id} className="hover:bg-brand/5 transition-colors group">
                       <td className="px-6 py-4 font-bold text-gray-900 dark:text-white flex items-center space-x-3">
-                        <div className="w-9 h-9 rounded-xl bg-amber-500/10 text-amber-500 flex items-center justify-center font-black shrink-0">
+                        <div className="w-9 h-9 rounded-xl bg-brand/10 text-brand flex items-center justify-center font-black shrink-0">
                           {enq.customer_name.charAt(0)}
                         </div>
                         <div>
@@ -191,10 +191,10 @@ export function EnquiriesList() {
                       </td>
                       <td className="px-6 py-4 text-gray-600 dark:text-gray-300 font-medium">
                         <span className="flex items-center gap-1.5">
-                          <Phone className="w-3.5 h-3.5 text-amber-500" /> {enq.phone}
+                          <Phone className="w-3.5 h-3.5 text-brand" /> {enq.phone}
                         </span>
                       </td>
-                      <td className="px-6 py-4 font-extrabold text-amber-600 dark:text-amber-400">
+                      <td className="px-6 py-4 font-extrabold text-brand dark:text-brand">
                         <span className="flex items-center gap-1">
                           <Sun className="w-4 h-4" /> {enq.capacity_kw} kW
                         </span>
@@ -210,7 +210,7 @@ export function EnquiriesList() {
                       <td className="px-6 py-4 text-right">
                         <button
                           onClick={() => navigate('/dashboard/survey')}
-                          className="px-4 py-2 rounded-xl bg-amber-500/10 hover:bg-amber-500 text-amber-600 hover:text-gray-900 font-bold text-xs transition flex items-center gap-1.5 ml-auto shadow-sm"
+                          className="px-4 py-2 rounded-xl bg-brand/10 hover:bg-brand text-brand hover:text-white dark:hover:text-gray-950 font-bold text-xs transition flex items-center gap-1.5 ml-auto shadow-sm"
                         >
                           <span>View / Survey</span>
                           <ArrowUpRight className="w-3.5 h-3.5" />

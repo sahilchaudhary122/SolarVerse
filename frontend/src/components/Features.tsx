@@ -37,7 +37,7 @@ export function Features() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
         <div className="text-center max-w-3xl mx-auto mb-16 animate-fade-in-up">
-          <span className="text-amber-600 dark:text-amber-400 font-semibold text-sm uppercase tracking-wider">
+          <span className="text-brand dark:text-brand font-semibold text-sm uppercase tracking-wider">
             Our Solutions
           </span>
           <h2 className="text-3xl sm:text-4xl font-extrabold text-gray-900 dark:text-white mt-2 tracking-tight">
@@ -56,17 +56,17 @@ export function Features() {
               <div
                 key={index}
                 onClick={() => scrollToSection('enquiry-form')}
-                className={`bg-white dark:bg-gray-900 rounded-3xl p-8 shadow-sm hover:-translate-y-2 hover:shadow-xl dark:shadow-none dark:border dark:border-gray-800 dark:hover:shadow-amber-900/30 transition-all duration-300 flex flex-col justify-between group relative overflow-hidden cursor-pointer ${feature.delayClass}`}
+                className={`bg-white dark:bg-gray-900 rounded-3xl p-8 shadow-sm hover:-translate-y-2 hover:shadow-xl dark:shadow-none dark:border dark:border-gray-800 dark:hover:shadow-brand/20 transition-all duration-300 flex flex-col justify-between group relative overflow-hidden cursor-pointer ${feature.delayClass}`}
               >
                 {/* Top Accent Gradient Bar */}
-                <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-amber-500 to-orange-400 opacity-0 group-hover:opacity-100 transition-opacity" />
+                <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-brand to-brand-fresh opacity-0 group-hover:opacity-100 transition-opacity" />
 
                 <div>
                   <div className="flex items-center justify-between mb-6">
-                    <div className="w-14 h-14 rounded-2xl bg-amber-50 dark:bg-amber-950/50 flex items-center justify-center text-amber-600 dark:text-amber-400 group-hover:scale-110 transition-transform">
+                    <div className="w-14 h-14 rounded-2xl bg-brand-soft dark:bg-brand-soft/50 flex items-center justify-center text-brand dark:text-brand group-hover:scale-110 transition-transform">
                       <Icon className="w-7 h-7" />
                     </div>
-                    <span className="px-3 py-1 bg-amber-50 dark:bg-amber-950 text-amber-600 dark:text-amber-400 text-xs font-semibold rounded-full border border-amber-100 dark:border-amber-900">
+                    <span className="px-3 py-1 bg-brand-soft dark:bg-brand-soft text-brand dark:text-brand text-xs font-semibold rounded-full border border-brand-soft dark:border-brand/40">
                       {feature.badge}
                     </span>
                   </div>
@@ -84,7 +84,7 @@ export function Features() {
                     e.stopPropagation()
                     scrollToSection('enquiry-form')
                   }}
-                  className="inline-flex items-center space-x-2 text-amber-600 dark:text-amber-400 font-semibold text-sm group-hover:text-amber-700 dark:group-hover:text-amber-300 transition-colors pt-4 border-t border-gray-100 dark:border-gray-800"
+                  className="inline-flex items-center space-x-2 text-brand dark:text-brand font-semibold text-sm group-hover:text-warning dark:group-hover:text-brand-fresh transition-colors pt-4 border-t border-gray-100 dark:border-gray-800"
                 >
                   <span>Get Started</span>
                   <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />

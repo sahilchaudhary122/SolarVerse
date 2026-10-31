@@ -25,7 +25,7 @@ export function AboutSection() {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-center">
           {/* Left Column: Tag, Heading, Paragraph, 3 Bullet Points */}
           <div className="lg:col-span-6 space-y-6">
-            <span className="text-amber-600 dark:text-amber-400 font-semibold text-sm uppercase tracking-wider">
+            <span className="text-brand dark:text-brand font-semibold text-sm uppercase tracking-wider">
               About Us
             </span>
             <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-gray-900 dark:text-white tracking-tight leading-tight">
@@ -44,7 +44,7 @@ export function AboutSection() {
                     key={index}
                     className="glass-panel p-5 rounded-2xl hover:-translate-y-1 hover:shadow-xl transition-all duration-300 flex items-start space-x-4"
                   >
-                    <div className="w-12 h-12 rounded-xl bg-amber-500/10 flex items-center justify-center text-amber-600 dark:text-amber-400 shrink-0 mt-1">
+                    <div className="w-12 h-12 rounded-xl bg-brand/10 flex items-center justify-center text-brand dark:text-brand shrink-0 mt-1">
                       <Icon className="w-6 h-6" />
                     </div>
                     <div>
@@ -73,7 +73,7 @@ export function AboutSection() {
 
               {/* Floating Badge */}
               <div className="absolute bottom-6 left-6 right-6 p-6 glass-panel rounded-2xl flex items-center space-x-4 shadow-xl">
-                <div className="w-14 h-14 rounded-2xl bg-amber-500 flex items-center justify-center text-gray-900 font-bold shrink-0 shadow-lg">
+                <div className="w-14 h-14 rounded-2xl bg-brand flex items-center justify-center text-white dark:text-gray-950 font-bold shrink-0 shadow-lg">
                   <Award className="w-7 h-7" />
                 </div>
                 <div>
@@ -84,7 +84,7 @@ export function AboutSection() {
             </div>
 
             {/* Background Glow */}
-            <div className="absolute -top-6 -right-6 w-72 h-72 bg-amber-500/10 rounded-full blur-3xl -z-10" />
+            <div className="absolute -top-6 -right-6 w-72 h-72 bg-brand/10 rounded-full blur-3xl -z-10" />
           </div>
         </div>
       </div>

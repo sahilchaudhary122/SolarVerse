@@ -28,7 +28,7 @@ export async function submitEnquiry(data: Enquiry): Promise<EnquiryResponse> {
       } else {
         resolve({
           success: true,
-          message: 'Enquiry submitted successfully! Our solar expert will contact you within 24 hours.',
+          message: 'Demo enquiry recorded for preview. No request was sent to a server.',
           data,
         });
       }

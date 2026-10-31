@@ -34,7 +34,7 @@ export function ProjectsSection() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
         <div className="text-center max-w-3xl mx-auto mb-16">
-          <span className="text-amber-600 dark:text-amber-400 font-semibold text-sm uppercase tracking-wider">
+          <span className="text-brand dark:text-brand font-semibold text-sm uppercase tracking-wider">
             Our Portfolio
           </span>
           <h2 className="text-3xl sm:text-4xl font-extrabold text-gray-900 dark:text-white mt-2 tracking-tight">
@@ -60,17 +60,17 @@ export function ProjectsSection() {
                     alt={project.title}
                     className="w-full h-64 object-cover group-hover:scale-105 transition-transform duration-500"
                   />
-                  <div className="absolute top-4 right-4 px-3 py-1 bg-amber-500 text-gray-900 font-semibold text-xs rounded-full shadow-md">
+                  <div className="absolute top-4 right-4 px-3 py-1 bg-brand text-white dark:text-gray-950 font-semibold text-xs rounded-full shadow-md">
                     {project.capacity}
                   </div>
                 </div>
 
                 <div className="p-6">
-                  <div className="flex items-center space-x-1 text-amber-600 dark:text-amber-400 text-xs font-semibold mb-2">
+                  <div className="flex items-center space-x-1 text-brand dark:text-brand text-xs font-semibold mb-2">
                     <MapPin className="w-4 h-4" />
                     <span>{project.location}</span>
                   </div>
-                  <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">
+                  <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2 group-hover:text-brand dark:group-hover:text-brand transition-colors">
                     {project.title}
                   </h3>
                 </div>
@@ -80,7 +80,7 @@ export function ProjectsSection() {
                 <span className="text-xs font-semibold text-gray-500 dark:text-gray-400">
                   View Case Study
                 </span>
-                <div className="w-9 h-9 rounded-xl bg-amber-50 dark:bg-amber-950/50 flex items-center justify-center text-amber-600 dark:text-amber-400 group-hover:bg-amber-500 group-hover:text-gray-900 transition-all">
+                <div className="w-9 h-9 rounded-xl bg-brand-soft dark:bg-brand-soft/50 flex items-center justify-center text-brand dark:text-brand group-hover:bg-brand group-hover:text-white dark:group-hover:text-gray-950 transition-all">
                   <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
                 </div>
               </div>

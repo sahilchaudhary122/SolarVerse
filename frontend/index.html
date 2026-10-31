@@ -4,7 +4,18 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>frontend</title>
+    <meta name="theme-color" content="#F6F8F6" />
+    <meta name="description" content="SolarVerse solar installation and project management." />
+    <title>SolarVerse</title>
+    <script>
+      try {
+        const savedTheme = localStorage.getItem('solarverse-theme')
+        const initialTheme = savedTheme || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
+        if (initialTheme === 'dark') document.documentElement.classList.add('dark')
+      } catch {
+        // ThemeProvider applies the selected theme after startup if storage is unavailable.
+      }
+    </script>
   </head>
   <body>
     <div id="root"></div>
