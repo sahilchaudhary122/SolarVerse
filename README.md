@@ -1,27 +1,28 @@
 # SolarVerse
 ### One Platform. Complete Solar Business Management.
 
-SolarVerse is a centralized management system designed for solar installation businesses. It brings customer enquiries, site surveys, quotations, inventory, equipment tracking, technician scheduling, installations, warranties and service management into one platform.
+SolarVerse is a centralized management platform designed for solar installation businesses. It brings customer enquiries, site surveys, quotations, inventory, equipment tracking, technician scheduling, installations, warranties and service management into one application.
 
-The goal is to reduce manual work, avoid operational errors and give the business a clear view of every project, from the first customer enquiry to post-installation support.
+The goal is to simplify daily operations, reduce manual work, minimize errors and provide better visibility into every solar project — from the first customer enquiry to post-installation support.
 
 ---
 
 ## About the Project
 
-Solar installation businesses often manage their daily operations using WhatsApp messages, phone calls, spreadsheets and paper records.
+Solar installation businesses often manage their operations using WhatsApp messages, phone calls, spreadsheets and paper records.
 
-This can create problems such as:
-- Customer information being scattered across different platforms.
-- Delays in conducting and approving site surveys.
-- Missing components in quotations.
-- Difficulty tracking stock and equipment.
-- Lost or unrecorded product serial numbers.
-- Confusion around technician assignments and installation progress.
-- Difficulty checking warranty status and service history.
-- Limited visibility into project costs, payments and profits.
+This creates several challenges:
 
-SolarVerse aims to bring these activities together in one organized system.
+- Customer information is scattered across different platforms.
+- Site surveys and approvals are difficult to track.
+- Quotations may contain missing or incorrect components.
+- Inventory and equipment movement are not properly monitored.
+- Product serial numbers can get lost.
+- Technician assignments and installation progress are difficult to manage.
+- Warranty verification and service history are not easily accessible.
+- Management has limited visibility into project costs and profitability.
+
+SolarVerse aims to solve these problems through a single, organized management platform.
 
 ---
 
@@ -30,10 +31,10 @@ SolarVerse aims to bring these activities together in one organized system.
 - Centralize customer and project information.
 - Manage enquiries and site surveys systematically.
 - Generate accurate quotations and Bills of Materials (BOM).
-- Maintain visibility into inventory and equipment.
+- Maintain inventory and equipment records.
 - Track product serial numbers from dispatch onwards.
 - Simplify technician scheduling and installation tracking.
-- Manage product warranties and customer service requests.
+- Manage product warranties and service requests.
 - Provide useful reports for business decision-making.
 
 ---
@@ -41,31 +42,34 @@ SolarVerse aims to bring these activities together in one organized system.
 ## Key Features
 
 ### 1. Customer and Enquiry Management
-- Maintain customer contact information.
+- Register and manage customer information.
 - Record new solar installation enquiries.
-- Track customer requirements and project details.
-- Maintain the history of customer interactions.
+- Track customer requirements.
+- Maintain customer interaction history.
+- Monitor enquiry status.
 
 ### 2. Site Survey Management
 - Schedule site visits.
 - Record roof area, direction and tilt.
 - Check shadow-free roof space.
-- Record monthly electricity consumption or bills.
+- Record monthly electricity bills.
 - Capture cable distance and grid suitability.
-- Submit surveys for approval before quotation.
+- Submit surveys for approval.
+- Maintain survey history.
 
 ### 3. Solar Packages and Quotations
 - Manage solar packages from 1 kW to 5 kW.
 - Support On-Grid and Off-Grid systems.
 - Maintain package component details.
 - Generate quotations based on approved surveys.
-- Calculate the required components and estimated costs.
+- Calculate required components and estimated costs.
 
 ### 4. Bill of Materials (BOM)
-- Generate a component list for each solar package.
-- Identify the quantity of panels, inverters, wiring and other components.
-- Check the required materials before order confirmation.
-- Maintain package-level component configurations.
+- Generate component lists for selected solar packages.
+- Calculate required quantities.
+- Identify panels, inverters, wiring and other components.
+- Check required materials before order confirmation.
+- Maintain configurable package components.
 
 ### 5. Inventory Management
 - Maintain records of solar panels, inverters, batteries and accessories.
@@ -76,9 +80,9 @@ SolarVerse aims to bring these activities together in one organized system.
 
 ### 6. Serial Number Tracking
 - Record equipment serial numbers.
-- Link products to customer orders and installation sites.
+- Link equipment to customer orders and installation sites.
 - Maintain equipment history.
-- Use serial number records to support warranty verification.
+- Support warranty verification through serial numbers.
 
 ### 7. Technician and Installation Management
 - Assign technicians to installation projects.
@@ -86,70 +90,102 @@ SolarVerse aims to bring these activities together in one organized system.
 - Track installation progress.
 - Record installation start and completion times.
 - Capture site photographs and installation details.
-- Maintain installation checklists and customer sign-off.
+- Maintain installation checklists.
+- Record customer sign-off.
 
 ### 8. Warranty Management
 - Maintain product warranty information.
 - Track warranty start and end dates.
 - Link warranties to equipment serial numbers.
-- Check warranty status when a service request is created.
+- Check warranty status during service requests.
 
 ### 9. Service and Complaint Management
 - Register customer complaints.
 - Create service and repair tickets.
-- Track assigned technicians.
+- Assign technicians.
 - Record repair activities and replacement parts.
-- Keep tickets open until the customer confirms resolution.
+- Track service status until customer confirmation.
 
 ### 10. Reports and Dashboard
 - View ongoing and completed installations.
-- Monitor pending customer enquiries.
-- Track stock availability.
+- Monitor pending enquiries.
+- Track inventory availability.
 - Review advance payments and outstanding amounts.
 - Analyze project costs and profitability.
-- Monitor technician workload and service requests.
+- Monitor technician workload.
+- Review pending service requests.
 
 ---
 
 ## Technology Stack
 
-SolarVerse is planned using the following technologies:
+SolarVerse is being developed as an independent web application.
 
 | Component | Technology |
 |---|---|
-| ERP and Application Platform | Odoo Community |
-| Backend | Python |
-| ORM | Odoo ORM |
+| Frontend Framework | React.js |
+| Frontend Language | TypeScript |
+| Frontend Build Tool | Vite |
+| UI Styling | Tailwind CSS |
+| Routing | React Router |
+| Server State Management | TanStack Query |
+| HTTP Client | Axios |
+| Form Management | React Hook Form |
+| Frontend Validation | Zod |
+| Backend Framework | Python FastAPI |
+| Backend Language | Python |
+| API Validation | Pydantic |
+| ORM | SQLAlchemy |
+| Database Migrations | Alembic |
 | Database | PostgreSQL |
-| Frontend | Odoo XML Views |
-| Interactive UI | JavaScript / OWL (when required) |
-| Reports | QWeb |
+| PostgreSQL Driver | Psycopg 3 |
+| Authentication | JWT |
+| Password Hashing | Argon2 using pwdlib |
+| File Storage | Supabase Storage |
+| API Testing | Postman |
+| Backend Testing | Pytest and HTTPX |
+| Code Quality | Ruff |
 | Code Editor | Visual Studio Code |
 | Version Control | Git |
 | Repository Hosting | GitHub |
 
-The project uses Odoo's existing application framework, ORM and web client instead of maintaining a separate frontend and backend.
+All team members will follow the same agreed dependency versions to avoid compatibility and integration problems.
 
 ---
 
 ## System Architecture
 
-The planned application follows this architecture:
+SolarVerse follows a frontend-backend-database architecture.
 
 ```text
-             Users
-               |
-               v
-        Odoo Web Client
-               |
-               v
-        XML Views / OWL
-               |
-               v
-       Python Application
-               |
-               v
-           Odoo ORM
-               |
-               v
-          PostgreSQL
+                  USERS
+                    |
+                    v
+             REACT FRONTEND
+          TypeScript + Tailwind CSS
+                    |
+                    | REST API
+                    | JSON / HTTP
+                    v
+              FASTAPI BACKEND
+                  Python
+                    |
+          -----------------------
+          |          |          |
+          v          v          v
+      AUTHENT.   BUSINESS   VALIDATION
+                  LOGIC
+          |          |          |
+          -----------------------
+                    |
+                    v
+                SQLALCHEMY
+                    |
+                    v
+                POSTGRESQL
+
+             FASTAPI BACKEND
+                    |
+                    v
+              SUPABASE STORAGE
+              Photos/Documents
