@@ -1,13 +1,13 @@
-# SolarVerse PostgreSQL Database Schema — Version 1.1
+# SolarVerse PostgreSQL Database Schema — Version 1.2
 
 **PROPOSED – PENDING TEAM APPROVAL**
-This is a documentation proposal only. It does not create application code, SQLAlchemy models, migrations, or database objects. Version 1.0 remains available in Git history at commit `f2b449c` (`docs: add approved database design v1.0`).
+This is a documentation proposal only. It does not create application code, SQLAlchemy models, migrations, or database objects. Version 1.0 is preserved at `f2b449c`; Version 1.1 is preserved at `307a14e` in Git history.
 
 The schema is based on the Version 1.0 database documents and the 14 review areas recorded in `04-constraints-and-business-rules.md`. The current checkout contains README and database documentation, but no React frontend contracts or FastAPI source/models. Consequently, field names retain the existing snake_case contract vocabulary where available; exact request/response shapes must be checked with the frontend/backend owners before implementation.
 
 ## PostgreSQL conventions
 
-- PostgreSQL; UUID primary keys use `gen_random_uuid()` as the proposed database default. Confirm this with the backend developer before migration work.
+- PostgreSQL; all UUID primary keys are generated in the application with Python `uuid.uuid4()` and passed to SQLAlchemy. Do not add PostgreSQL UUID-generation defaults such as `gen_random_uuid()` or `uuid_generate_v4()`.
 - Lowercase `snake_case` identifiers; `timestamptz` for instants; `date` for calendar dates; `numeric` for money/measurements; no floating-point money.
 - Currency uses a three-letter ISO 4217 code. Currency and tax/discount treatment remain team decisions.
 - Foreign keys default to `ON DELETE RESTRICT` unless explicitly documented otherwise. Preserve business history; prefer deactivate/archive over hard deletion.
@@ -18,7 +18,7 @@ The schema is based on the Version 1.0 database documents and the 14 review area
 
 ```sql
 CREATE TABLE customer (
-    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    id uuid PRIMARY KEY,
     name varchar(160) NOT NULL,
     phone_e164 varchar(16) NOT NULL,
     email varchar(254),
@@ -27,7 +27,7 @@ CREATE TABLE customer (
 -- Deliberately no UNIQUE constraint on phone_e164.
 
 CREATE TABLE site (
-    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    id uuid PRIMARY KEY,
     customer_id uuid NOT NULL,
     label varchar(120),
     address_line text NOT NULL,
@@ -38,11 +38,11 @@ CREATE TABLE site (
     created_at timestamptz NOT NULL DEFAULT now(),
     CONSTRAINT fk_site_customer FOREIGN KEY (customer_id)
         REFERENCES customer(id) ON DELETE RESTRICT,
-    CONSTRAINT uq_site_id_customer UNIQUE (id, customer_id)
+    CONSTRAINT uq_site_customer_id UNIQUE (customer_id, id)
 );
 
 CREATE TABLE enquiry (
-    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    id uuid PRIMARY KEY,
     customer_id uuid NOT NULL,
     site_id uuid NOT NULL,
     requested_capacity_kw numeric(8,3),
@@ -52,8 +52,8 @@ CREATE TABLE enquiry (
     requirements text,
     status varchar(24) NOT NULL DEFAULT 'new',
     created_at timestamptz NOT NULL DEFAULT now(),
-    CONSTRAINT fk_enquiry_customer_site FOREIGN KEY (site_id, customer_id)
-        REFERENCES site(id, customer_id) ON DELETE RESTRICT,
+    CONSTRAINT fk_enquiry_customer_site FOREIGN KEY (customer_id, site_id)
+        REFERENCES site(customer_id, id) ON DELETE RESTRICT,
     CONSTRAINT uq_enquiry_id_site UNIQUE (id, site_id),
     CONSTRAINT ck_enquiry_capacity_positive CHECK
         (requested_capacity_kw IS NULL OR requested_capacity_kw > 0),
@@ -67,16 +67,18 @@ CREATE TABLE enquiry (
 );
 
 CREATE TABLE customer_interaction (
-    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    id uuid PRIMARY KEY,
     enquiry_id uuid NOT NULL REFERENCES enquiry(id) ON DELETE RESTRICT,
     interaction_type varchar(40) NOT NULL,
     notes text,
     occurred_at timestamptz NOT NULL DEFAULT now(),
-    created_at timestamptz NOT NULL DEFAULT now()
+    created_at timestamptz NOT NULL DEFAULT now(),
+    CONSTRAINT ck_customer_interaction_type CHECK
+        (interaction_type IN ('call','email','visit','note','whatsapp','sms'))
 );
 
 CREATE TABLE enquiry_status_history (
-    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    id uuid PRIMARY KEY,
     enquiry_id uuid NOT NULL REFERENCES enquiry(id) ON DELETE RESTRICT,
     from_status varchar(24),
     to_status varchar(24) NOT NULL,
@@ -90,7 +92,7 @@ CREATE TABLE enquiry_status_history (
 );
 
 CREATE TABLE site_survey (
-    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    id uuid PRIMARY KEY,
     enquiry_id uuid NOT NULL,
     site_id uuid NOT NULL,
     scheduled_at timestamptz,
@@ -103,6 +105,7 @@ CREATE TABLE site_survey (
     cable_distance_m numeric(10,2),
     grid_suitability boolean,
     status varchar(24) NOT NULL DEFAULT 'draft',
+    is_current boolean NOT NULL DEFAULT false,
     submitted_at timestamptz,
     approved_at timestamptz,
     created_at timestamptz NOT NULL DEFAULT now(),
@@ -118,21 +121,46 @@ CREATE TABLE site_survey (
     CONSTRAINT ck_survey_bill_currency CHECK
         ((monthly_bill IS NULL) = (monthly_bill_currency_code IS NULL)),
     CONSTRAINT ck_survey_cable_distance CHECK
-        (cable_distance_m IS NULL OR cable_distance_m >= 0)
+        (cable_distance_m IS NULL OR cable_distance_m >= 0),
+    CONSTRAINT ck_site_survey_status CHECK
+        (status IN ('draft','submitted','approved','rejected')),
+    CONSTRAINT ck_site_survey_current_approved CHECK
+        (NOT is_current OR status = 'approved')
+);
+
+CREATE UNIQUE INDEX uq_site_survey_current_approved_per_enquiry
+    ON site_survey(enquiry_id)
+    WHERE is_current IS TRUE AND status = 'approved';
+
+CREATE TABLE app_user (
+    id uuid PRIMARY KEY,
+    display_name varchar(160) NOT NULL,
+    email_normalized varchar(254) NOT NULL UNIQUE,
+    password_hash text NOT NULL,
+    role varchar(40) NOT NULL,
+    is_active boolean NOT NULL DEFAULT true,
+    created_at timestamptz NOT NULL DEFAULT now(),
+    updated_at timestamptz NOT NULL DEFAULT now(),
+    CONSTRAINT ck_app_user_email_normalized CHECK
+        (email_normalized <> '' AND email_normalized = LOWER(BTRIM(email_normalized)))
 );
 
 CREATE TABLE site_survey_review (
-    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    id uuid PRIMARY KEY,
     survey_id uuid NOT NULL REFERENCES site_survey(id) ON DELETE RESTRICT,
+    reviewer_id uuid NOT NULL REFERENCES app_user(id) ON DELETE RESTRICT,
+    reviewer_label text NOT NULL,
     decision varchar(20) NOT NULL,
-    reviewer_label text,
     reviewed_at timestamptz NOT NULL DEFAULT now(),
+    rejection_reason text,
     notes text,
-    CONSTRAINT ck_survey_review_decision CHECK (decision IN ('approved','rejected','returned'))
+    CONSTRAINT ck_survey_review_decision CHECK (decision IN ('approved','rejected')),
+    CONSTRAINT ck_survey_review_rejection_reason CHECK
+        (decision <> 'rejected' OR NULLIF(BTRIM(rejection_reason), '') IS NOT NULL)
 );
 
 CREATE TABLE solar_package (
-    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    id uuid PRIMARY KEY,
     name varchar(120) NOT NULL,
     capacity_kw numeric(8,3) NOT NULL,
     system_type varchar(20) NOT NULL,
@@ -143,7 +171,7 @@ CREATE TABLE solar_package (
 );
 
 CREATE TABLE product (
-    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    id uuid PRIMARY KEY,
     name varchar(160) NOT NULL,
     category varchar(80) NOT NULL,
     tracks_serial_number boolean NOT NULL DEFAULT false,
@@ -160,7 +188,7 @@ CREATE TABLE package_component (
 );
 
 CREATE TABLE quotation (
-    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    id uuid PRIMARY KEY,
     enquiry_id uuid NOT NULL REFERENCES enquiry(id) ON DELETE RESTRICT,
     survey_id uuid NOT NULL,
     package_id uuid REFERENCES solar_package(id) ON DELETE RESTRICT,
@@ -182,7 +210,7 @@ CREATE TABLE quotation (
 );
 
 CREATE TABLE quotation_line (
-    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    id uuid PRIMARY KEY,
     quotation_id uuid NOT NULL REFERENCES quotation(id) ON DELETE RESTRICT,
     product_id uuid REFERENCES product(id) ON DELETE RESTRICT,
     description_snapshot text NOT NULL,
@@ -196,7 +224,7 @@ CREATE TABLE quotation_line (
 );
 
 CREATE TABLE sales_order (
-    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    id uuid PRIMARY KEY,
     quotation_id uuid NOT NULL REFERENCES quotation(id) ON DELETE RESTRICT,
     status varchar(24) NOT NULL,
     confirmed_at timestamptz,
@@ -212,7 +240,7 @@ CREATE TABLE sales_order (
 -- No UNIQUE(quotation_id): one-order-per-quotation is unresolved.
 
 CREATE TABLE order_line (
-    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    id uuid PRIMARY KEY,
     order_id uuid NOT NULL REFERENCES sales_order(id) ON DELETE RESTRICT,
     source_quotation_line_id uuid REFERENCES quotation_line(id) ON DELETE RESTRICT,
     product_id uuid REFERENCES product(id) ON DELETE RESTRICT,
@@ -228,7 +256,7 @@ CREATE TABLE order_line (
 );
 
 CREATE TABLE inventory_location (
-    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    id uuid PRIMARY KEY,
     name varchar(120) NOT NULL,
     active boolean NOT NULL DEFAULT true,
     created_at timestamptz NOT NULL DEFAULT now()
@@ -244,7 +272,7 @@ CREATE TABLE inventory_balance (
 );
 
 CREATE TABLE stock_movement (
-    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    id uuid PRIMARY KEY,
     location_id uuid NOT NULL REFERENCES inventory_location(id) ON DELETE RESTRICT,
     product_id uuid NOT NULL REFERENCES product(id) ON DELETE RESTRICT,
     order_id uuid REFERENCES sales_order(id) ON DELETE RESTRICT,
@@ -256,7 +284,7 @@ CREATE TABLE stock_movement (
 );
 
 CREATE TABLE stock_reservation (
-    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    id uuid PRIMARY KEY,
     location_id uuid NOT NULL,
     order_id uuid NOT NULL REFERENCES sales_order(id) ON DELETE RESTRICT,
     order_line_id uuid NOT NULL,
@@ -275,7 +303,7 @@ CREATE TABLE stock_reservation (
 );
 
 CREATE TABLE dispatch (
-    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    id uuid PRIMARY KEY,
     order_id uuid NOT NULL REFERENCES sales_order(id) ON DELETE RESTRICT,
     status varchar(24) NOT NULL,
     dispatched_at timestamptz,
@@ -289,7 +317,7 @@ CREATE TABLE dispatch (
 );
 
 CREATE TABLE dispatch_item (
-    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    id uuid PRIMARY KEY,
     dispatch_id uuid NOT NULL,
     order_id uuid NOT NULL,
     order_line_id uuid,
@@ -304,7 +332,7 @@ CREATE TABLE dispatch_item (
 );
 
 CREATE TABLE installation (
-    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    id uuid PRIMARY KEY,
     order_id uuid REFERENCES sales_order(id) ON DELETE RESTRICT,
     site_id uuid NOT NULL REFERENCES site(id) ON DELETE RESTRICT,
     status varchar(24) NOT NULL,
@@ -319,7 +347,7 @@ CREATE TABLE installation (
 );
 
 CREATE TABLE technician (
-    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    id uuid PRIMARY KEY,
     name varchar(160) NOT NULL,
     phone_e164 varchar(16),
     active boolean NOT NULL DEFAULT true,
@@ -334,7 +362,7 @@ CREATE TABLE installation_technician (
 );
 
 CREATE TABLE installation_checklist_item (
-    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    id uuid PRIMARY KEY,
     installation_id uuid NOT NULL REFERENCES installation(id) ON DELETE RESTRICT,
     item_key varchar(80) NOT NULL,
     description_snapshot text NOT NULL,
@@ -347,7 +375,7 @@ CREATE TABLE installation_checklist_item (
 );
 
 CREATE TABLE equipment_unit (
-    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    id uuid PRIMARY KEY,
     product_id uuid NOT NULL REFERENCES product(id) ON DELETE RESTRICT,
     dispatch_item_id uuid,
     serial_number varchar(120),
@@ -359,7 +387,7 @@ CREATE UNIQUE INDEX uq_equipment_serial_nonnull ON equipment_unit(serial_number)
     WHERE serial_number IS NOT NULL;
 
 CREATE TABLE equipment_event (
-    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    id uuid PRIMARY KEY,
     equipment_unit_id uuid NOT NULL REFERENCES equipment_unit(id) ON DELETE RESTRICT,
     site_id uuid REFERENCES site(id) ON DELETE RESTRICT,
     installation_id uuid REFERENCES installation(id) ON DELETE RESTRICT,
@@ -369,7 +397,7 @@ CREATE TABLE equipment_event (
 );
 
 CREATE TABLE warranty (
-    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    id uuid PRIMARY KEY,
     equipment_unit_id uuid NOT NULL REFERENCES equipment_unit(id) ON DELETE RESTRICT,
     starts_on date NOT NULL,
     ends_on date NOT NULL,
@@ -378,15 +406,15 @@ CREATE TABLE warranty (
 );
 
 CREATE TABLE service_ticket (
-    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    id uuid PRIMARY KEY,
     customer_id uuid NOT NULL REFERENCES customer(id) ON DELETE RESTRICT,
     site_id uuid,
     equipment_unit_id uuid REFERENCES equipment_unit(id) ON DELETE RESTRICT,
     status varchar(24) NOT NULL,
     opened_at timestamptz NOT NULL DEFAULT now(),
     closed_at timestamptz,
-    CONSTRAINT fk_service_ticket_site_customer FOREIGN KEY (site_id, customer_id)
-        REFERENCES site(id, customer_id) ON DELETE RESTRICT,
+    CONSTRAINT fk_service_ticket_site_customer FOREIGN KEY (customer_id, site_id)
+        REFERENCES site(customer_id, id) ON DELETE RESTRICT,
     CONSTRAINT ck_service_ticket_dates CHECK (closed_at IS NULL OR closed_at >= opened_at)
 );
 
@@ -398,7 +426,7 @@ CREATE TABLE service_ticket_technician (
 );
 
 CREATE TABLE service_activity (
-    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    id uuid PRIMARY KEY,
     ticket_id uuid NOT NULL REFERENCES service_ticket(id) ON DELETE RESTRICT,
     occurred_at timestamptz NOT NULL DEFAULT now(),
     activity_type varchar(40) NOT NULL,
@@ -408,7 +436,7 @@ CREATE TABLE service_activity (
 );
 
 CREATE TABLE service_part (
-    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    id uuid PRIMARY KEY,
     ticket_id uuid NOT NULL REFERENCES service_ticket(id) ON DELETE RESTRICT,
     product_id uuid NOT NULL REFERENCES product(id) ON DELETE RESTRICT,
     quantity numeric(12,3) NOT NULL,
@@ -416,7 +444,7 @@ CREATE TABLE service_part (
 );
 
 CREATE TABLE file_asset (
-    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    id uuid PRIMARY KEY,
     site_survey_id uuid REFERENCES site_survey(id) ON DELETE RESTRICT,
     installation_id uuid REFERENCES installation(id) ON DELETE RESTRICT,
     service_ticket_id uuid REFERENCES service_ticket(id) ON DELETE RESTRICT,
@@ -434,7 +462,7 @@ CREATE TABLE file_asset (
 );
 
 CREATE TABLE payment (
-    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    id uuid PRIMARY KEY,
     order_id uuid NOT NULL REFERENCES sales_order(id) ON DELETE RESTRICT,
     amount numeric(14,2) NOT NULL,
     currency_code char(3) NOT NULL,
@@ -446,7 +474,7 @@ CREATE TABLE payment (
 );
 
 CREATE TABLE payment_refund (
-    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    id uuid PRIMARY KEY,
     payment_id uuid NOT NULL REFERENCES payment(id) ON DELETE RESTRICT,
     amount numeric(14,2) NOT NULL,
     status varchar(20) NOT NULL,
@@ -471,6 +499,7 @@ CREATE INDEX ix_interaction_enquiry_time ON customer_interaction(enquiry_id, occ
 CREATE INDEX ix_enquiry_history_enquiry_time ON enquiry_status_history(enquiry_id, changed_at);
 CREATE INDEX ix_survey_enquiry ON site_survey(enquiry_id);
 CREATE INDEX ix_survey_review_survey_time ON site_survey_review(survey_id, reviewed_at);
+CREATE INDEX ix_survey_review_reviewer ON site_survey_review(reviewer_id);
 CREATE INDEX ix_quotation_survey ON quotation(survey_id);
 CREATE INDEX ix_quotation_package ON quotation(package_id);
 CREATE INDEX ix_quotation_line_quote ON quotation_line(quotation_id);
@@ -536,5 +565,5 @@ Other rules require transaction/service logic: stock reservation availability un
 - Status values/transitions for modules other than the eight preserved enquiry values.
 - Reviewer identity and authorization for survey approvals.
 - Checklist templates, required items, and completion gates.
-- Whether app or database generates UUIDs; timestamp ownership; API field aliases.
+- Whether application updates all `updated_at` fields consistently; API field aliases and user-role vocabulary.
 - Whether all proposed optional modules are needed for the hackathon MVP.

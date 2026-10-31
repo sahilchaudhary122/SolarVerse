@@ -1,10 +1,10 @@
-# SolarVerse Database Design — Version 1.1
+# SolarVerse Database Design — Version 1.2
 
 **PROPOSED – PENDING TEAM APPROVAL**
 
-Version 1.1 revises the approved initial Version 1.0 design after backend technical review. It is documentation only; no application code, SQLAlchemy models, Alembic migrations, or database tables are created by these documents.
+Version 1.2 revises proposed Version 1.1 after the backend compatibility audit. It is documentation only; no application code, SQLAlchemy models, Alembic migrations, or database tables are created by these documents.
 
-Version 1.0 is preserved in Git history at commit `f2b449c` (`docs: add approved database design v1.0`). This update changes only these five database documentation files; the README at the repository root and unrelated work are not part of this design revision.
+Version 1.0 is preserved at commit `f2b449c` and Version 1.1 at `307a14e` in Git history. This revision changes only these five database documentation files; the repository-root README and unrelated work are not part of this design revision.
 
 ## Documents
 
@@ -19,7 +19,9 @@ PostgreSQL is the proposed source of truth for relational data. SQLAlchemy 2.x a
 
 The docs aim to align the database-facing contract with the React/TypeScript/Zod frontend and FastAPI/Pydantic backend architecture. The current checkout has no frontend contract files or backend source/models, so API names, casing/aliases, request/response shapes, and exact nullability must be verified with the implementation owners before migration work.
 
-The eight existing enquiry statuses are preserved: `new`, `contacted`, `survey_pending`, `qualified`, `quoted`, `converted`, `lost`, `cancelled`. Other new rules/statuses remain proposals unless explicitly confirmed by the team.
+The eight existing enquiry statuses are preserved: `new`, `contacted`, `survey_pending`, `qualified`, `quoted`, `converted`, `lost`, `cancelled`. The six customer-interaction types and four site-survey statuses are documented in the schema. UUIDs are generated application-side with Python `uuid.uuid4()`; PostgreSQL UUID defaults are not used. Other new rules remain proposals unless explicitly confirmed by the team.
+
+Authentication records are represented by `app_user`. Email is normalized and unique, password hashes are stored instead of passwords, and accounts are deactivated instead of deleted. Survey review history references its reviewer through `app_user` with `ON DELETE RESTRICT` and retains a reviewer-label snapshot.
 
 ## Change and review policy
 
