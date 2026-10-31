@@ -1,13 +1,8 @@
-# SolarVerse PostgreSQL Database Schema — Version 1.2
-
-**PROPOSED – PENDING TEAM APPROVAL**
-This is a documentation proposal only. It does not create application code, SQLAlchemy models, migrations, or database objects. Version 1.0 is preserved at `f2b449c`; Version 1.1 is preserved at `307a14e` in Git history.
 
 The schema is based on the Version 1.0 database documents and the 14 review areas recorded in `04-constraints-and-business-rules.md`. The current checkout contains README and database documentation, but no React frontend contracts or FastAPI source/models. Consequently, field names retain the existing snake_case contract vocabulary where available; exact request/response shapes must be checked with the frontend/backend owners before implementation.
 
 ## PostgreSQL conventions
 
-- PostgreSQL; all UUID primary keys are generated in the application with Python `uuid.uuid4()` and passed to SQLAlchemy. Do not add PostgreSQL UUID-generation defaults such as `gen_random_uuid()` or `uuid_generate_v4()`.
 - Lowercase `snake_case` identifiers; `timestamptz` for instants; `date` for calendar dates; `numeric` for money/measurements; no floating-point money.
 - Currency uses a three-letter ISO 4217 code. Currency and tax/discount treatment remain team decisions.
 - Foreign keys default to `ON DELETE RESTRICT` unless explicitly documented otherwise. Preserve business history; prefer deactivate/archive over hard deletion.
@@ -18,7 +13,6 @@ The schema is based on the Version 1.0 database documents and the 14 review area
 
 ```sql
 CREATE TABLE customer (
-    id uuid PRIMARY KEY,
     name varchar(160) NOT NULL,
     phone_e164 varchar(16) NOT NULL,
     email varchar(254),
@@ -566,4 +560,5 @@ Other rules require transaction/service logic: stock reservation availability un
 - Reviewer identity and authorization for survey approvals.
 - Checklist templates, required items, and completion gates.
 - Whether application updates all `updated_at` fields consistently; API field aliases and user-role vocabulary.
+- Whether app or database generates UUIDs; timestamp ownership; API field aliases.
 - Whether all proposed optional modules are needed for the hackathon MVP.

@@ -1,6 +1,8 @@
+
 # Constraints and Business Rules — Database Design Version 1.2
 
 **PROPOSED – PENDING TEAM APPROVAL**
+
 Versions 1.0 and 1.1 are preserved in Git history at `f2b449c` and `307a14e`. This file records the 14 backend review areas and identifies which behavior is represented by PostgreSQL constraints, which needs transactional backend logic, and which remains unresolved. No new team approval is implied by this proposal.
 
 ## Status of decisions

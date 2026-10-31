@@ -1,3 +1,4 @@
+
 # SolarVerse Database Design — Version 1.2
 
 **PROPOSED – PENDING TEAM APPROVAL**
@@ -25,4 +26,8 @@ Authentication records are represented by `app_user`. Email is normalized and un
 
 ## Change and review policy
 
-Do not treat this version as approved until the team reviews the unresolved decisions in `02-database-schema.md` and `04-constraints-and-business-rules.md`. After any decision, update all five docs together and compare the ER diagram, PostgreSQL DDL, dictionary, rules, and this index for consistency. Backend implementation owner: coordinate with the backend developer (Sahil/Member 3). Database design owner: Member 2.
+Do not treat this version as approved until the team reviews the unresolved decisions in `02-database-schema.md` and `04-constraints-and-business-rules.md`. After any decision, update all five docs together and compare the ER diagram, PostgreSQL DDL, dictionary, rules, and this index for consistency.
+
+Backend implementation owner: coordinate with the backend developer (Sahil/Member 3).
+
+Database design owner: Member 2.
