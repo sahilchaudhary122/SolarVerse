@@ -12,6 +12,8 @@ class Settings(BaseSettings):
     api_v1_prefix: str = "/api/v1"
     debug: bool = False
     database_url: str = "postgresql+psycopg://localhost/solarverse_dev"
+    secret_key: str = "solarverse-secure-jwt-secret-key-change-in-prod"
+    jwt_algorithm: str = "HS256"
 
     model_config = SettingsConfigDict(
         env_file=".env",
