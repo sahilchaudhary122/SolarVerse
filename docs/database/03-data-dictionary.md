@@ -1,271 +1,198 @@
-# 3. Data Dictionary
+# SolarVerse Data Dictionary — Database Design Version 1.1
 
-**TEAM-APPROVED INITIAL DATABASE DESIGN – VERSION 1.0**
+**PROPOSED – PENDING TEAM APPROVAL**
+This dictionary describes every table and column in the proposed PostgreSQL DDL in `02-database-schema.md`. It is documentation, not implemented schema. Version 1.0 is preserved in Git history at commit `f2b449c`.
 
-This dictionary describes the purpose and meaning of every table and column in the approved initial design. `NULL` means the value is optional/not yet known. `DEFAULT now()` means PostgreSQL supplies the insertion timestamp when the application omits it.
+`PK` = primary key; `FK` = foreign key; `NULL` = optional. `DEFAULT now()` records insertion time when omitted. UUID identifiers use the proposed `gen_random_uuid()` default. Exact API field casing/aliases need confirmation against frontend/backend source, which is not present in this documentation checkout.
 
-## CUSTOMER — customer contact record
+## Customer, site, and enquiry
 
-- `id` (UUID, PK, NOT NULL): unique customer record identifier.
-- `name` (varchar(160), NOT NULL): customer's display/legal name.
-- `phone_e164` (varchar(16), NOT NULL): normalized phone number in E.164 format, including `+` and country code. Not unique; duplicate phone numbers are allowed.
-- `email` (varchar(254), NULL): optional email address.
-- `created_at` (timestamptz, NOT NULL, DEFAULT now()): record creation time.
+### CUSTOMER — customer contact record
+- `id` (`uuid`, PK): customer identifier.
+- `name` (`varchar(160)`, required): customer display/legal name.
+- `phone_e164` (`varchar(16)`, required): normalized phone. **Not globally unique; duplicates are permitted.**
+- `email` (`varchar(254)`, nullable): optional email.
+- `created_at` (`timestamptz`, required, default `now()`): record creation.
 
-## SITE — customer installation/property location
+### SITE — customer property/installation location
+- `id` (`uuid`, PK): site identifier.
+- `customer_id` (`uuid`, FK -> `customer.id`, required): owning customer.
+- `label` (`varchar(120)`, nullable): optional site name.
+- `address_line` (`text`, required), `city` (`varchar(100)`, nullable), `state` (`varchar(100)`, nullable), `postal_code` (`varchar(20)`, nullable): address parts.
+- `country_code` (`char(2)`, required, default `IN`): proposed ISO 3166-1 alpha-2 code.
+- `created_at` (`timestamptz`, required, default `now()`): record creation.
+- Unique (`id`, `customer_id`) supports an ownership-checking composite FK.
 
-- `id` (UUID, PK, NOT NULL): unique site identifier.
-- `customer_id` (UUID, FK to customer, NOT NULL): owner/customer for this site.
-- `label` (varchar(120), NULL): optional name such as Home or Factory.
-- `address_line` (text, NOT NULL): street/building address submitted for the enquiry.
-- `city` (varchar(100), NULL): city/locality.
-- `state` (varchar(100), NULL): state/region.
-- `postal_code` (varchar(20), NULL): postal/ZIP code.
-- `country_code` (char(2), NOT NULL, DEFAULT 'IN'): ISO 3166-1 alpha-2 country code; MVP default India.
-- `created_at` (timestamptz, NOT NULL, DEFAULT now()): record creation time.
+### ENQUIRY — initial customer request
+- `id` (`uuid`, PK): enquiry identifier.
+- `customer_id` (`uuid`, required) and `site_id` (`uuid`, required): composite FK to `site(id, customer_id)` ensures the selected site belongs to that customer.
+- `requested_capacity_kw` (`numeric(8,3)`, nullable): customer-requested capacity in kW; positive when supplied.
+- `requested_system_type` (`varchar(20)`, nullable): proposed values `on-grid` or `off-grid`.
+- `monthly_bill` (`numeric(12,2)`, nullable): initial customer estimate; not the survey-confirmed amount.
+- `monthly_bill_currency_code` (`char(3)`, nullable): ISO currency for the initial estimate; present exactly when `monthly_bill` is present.
+- `requirements` (`text`, nullable): free-text requirements.
+- `status` (`varchar(24)`, required, default `new`): constrained to the existing eight values `new`, `contacted`, `survey_pending`, `qualified`, `quoted`, `converted`, `lost`, `cancelled`.
+- `created_at` (`timestamptz`, required, default `now()`): submission time.
+- Unique (`id`, `site_id`) supports a survey's composite FK.
 
-## ENQUIRY — initial customer request for a solar solution
+### CUSTOMER_INTERACTION — contact/history entry
+- `id` (`uuid`, PK); `enquiry_id` (`uuid`, FK -> `enquiry.id`, required).
+- `interaction_type` (`varchar(40)`, required): contact/event category; allowed values need backend/team agreement.
+- `notes` (`text`, nullable); `occurred_at` and `created_at` (`timestamptz`, required, default `now()`).
 
-- `id` (UUID, PK, NOT NULL): enquiry identifier.
-- `customer_id` (UUID, FK to customer, NOT NULL): customer created for this enquiry in MVP.
-- `site_id` (UUID, FK to site, NOT NULL): new site created from the address submitted with this enquiry in MVP.
-- `requested_capacity_kw` (numeric(8,3), NULL): requested system capacity in kilowatts.
-- `requested_system_type` (varchar(20), NULL): requested type; allowed values `on-grid` or `off-grid`.
-- `monthly_bill` (numeric(12,2), NULL): customer's initial estimated monthly electricity bill. Kept separately from the survey-confirmed amount.
-- `requirements` (text, NULL): free-text requirements or notes.
-- `status` (varchar(24), NOT NULL, DEFAULT 'new'): enquiry lifecycle state; allowed values `new`, `contacted`, `survey_pending`, `qualified`, `quoted`, `converted`, `lost`, `cancelled`.
-- `created_at` (timestamptz, NOT NULL, DEFAULT now()): submission time.
+### ENQUIRY_STATUS_HISTORY — enquiry transition history
+- `id` (`uuid`, PK); `enquiry_id` (`uuid`, FK -> `enquiry.id`, required).
+- `from_status` (`varchar(24)`, nullable for initial status); `to_status` (`varchar(24)`, required).
+- `changed_at` (`timestamptz`, required, default `now()`); `reason` (`text`, nullable).
+- `from_status` and `to_status` are constrained to the eight enquiry statuses (the former may be null for initial status); transition validity is service logic, not just a value check.
 
-## CUSTOMER_INTERACTION — contact/history log for an enquiry
+## Survey and approval
 
-- `id` (UUID, PK, NOT NULL): interaction identifier.
-- `enquiry_id` (UUID, FK to enquiry, NOT NULL): related enquiry.
-- `interaction_type` (varchar(40), NOT NULL): call, email, visit, note, or another agreed interaction category.
-- `notes` (text, NULL): interaction details.
-- `occurred_at` (timestamptz, NOT NULL, DEFAULT now()): when interaction occurred.
-- `created_at` (timestamptz, NOT NULL, DEFAULT now()): when interaction was recorded.
+### SITE_SURVEY — technical site assessment
+- `id` (`uuid`, PK); `enquiry_id` and `site_id` (`uuid`, required composite FK -> `enquiry(id, site_id)`).
+- `scheduled_at` (`timestamptz`, nullable).
+- `roof_area_sqm` (`numeric(10,2)`, nullable, >= 0); `roof_direction` (`varchar(30)`, nullable); `roof_tilt_degrees` (`numeric(5,2)`, nullable, 0–90); `shadow_free_area_sqm` (`numeric(10,2)`, nullable, >= 0).
+- `monthly_bill` (`numeric(12,2)`, nullable, >= 0): survey-confirmed amount, separate from enquiry estimate.
+- `monthly_bill_currency_code` (`char(3)`, nullable): ISO currency for the survey-confirmed bill; present exactly when its amount is present.
+- `cable_distance_m` (`numeric(10,2)`, nullable, >= 0); `grid_suitability` (`boolean`, nullable).
+- `status` (`varchar(24)`, required, default `draft`); `submitted_at`, `approved_at` (`timestamptz`, nullable); `created_at` (`timestamptz`, required, default `now()`).
+- Unique (`id`, `enquiry_id`) supports quotation cross-check.
 
-## SITE_SURVEY — technical assessment of an installation site
+### SITE_SURVEY_REVIEW — approval decision history
+- `id` (`uuid`, PK); `survey_id` (`uuid`, FK -> `site_survey.id`, required).
+- `decision` (`varchar(20)`, required; proposed values `approved`, `rejected`, `returned`).
+- `reviewer_label` (`text`, nullable pending agreed user/account identity); `reviewed_at` (`timestamptz`, required, default `now()`); `notes` (`text`, nullable).
 
-- `id` (UUID, PK, NOT NULL): survey identifier.
-- `enquiry_id` (UUID, FK to enquiry, NOT NULL): enquiry being assessed.
-- `site_id` (UUID, FK to site, NOT NULL): site inspected.
-- `scheduled_at` (timestamptz, NULL): scheduled survey time.
-- `roof_area_sqm` (numeric(10,2), NULL): measured roof area in square metres.
-- `roof_direction` (varchar(30), NULL): roof orientation.
-- `roof_tilt_degrees` (numeric(5,2), NULL): measured tilt in degrees.
-- `shadow_free_area_sqm` (numeric(10,2), NULL): usable unshaded area in square metres.
-- `monthly_bill` (numeric(12,2), NULL): survey-confirmed monthly bill; distinct from enquiry estimate.
-- `cable_distance_m` (numeric(10,2), NULL): estimated cable run in metres.
-- `grid_suitability` (boolean, NULL): survey assessment of grid suitability.
-- `status` (varchar(24), NOT NULL, DEFAULT 'draft'): survey workflow status.
-- `submitted_at` (timestamptz, NULL): submission time.
-- `approved_at` (timestamptz, NULL): approval time.
-- `created_at` (timestamptz, NOT NULL, DEFAULT now()): record creation time.
+## Catalog, packages, and quotations
 
-## SOLAR_PACKAGE — configurable solar offering
+### SOLAR_PACKAGE — configurable solar offering
+- `id` (`uuid`, PK); `name` (`varchar(120)`, required); `capacity_kw` (`numeric(8,3)`, required, > 0); `system_type` (`varchar(20)`, required, `on-grid` or `off-grid`); `active` (`boolean`, required, default `true`); `created_at` (`timestamptz`, required, default `now()`).
 
-- `id` (UUID, PK, NOT NULL): package identifier.
-- `name` (varchar(120), NOT NULL): package name.
-- `capacity_kw` (numeric(8,3), NOT NULL): package capacity in kW.
-- `system_type` (varchar(20), NOT NULL): `on-grid` or `off-grid`.
-- `active` (boolean, NOT NULL, DEFAULT true): whether available for new quotations.
-- `created_at` (timestamptz, NOT NULL, DEFAULT now()): creation time.
+### PRODUCT — catalog product/component
+- `id` (`uuid`, PK); `name` (`varchar(160)`, required); `category` (`varchar(80)`, required); `tracks_serial_number` and `active` (`boolean`, required, default `false` and `true` respectively); `created_at` (`timestamptz`, required, default `now()`).
 
-## PRODUCT — catalog item or equipment/component
+### PACKAGE_COMPONENT — package/product junction
+- `package_id` (`uuid`, PK part, FK -> `solar_package.id`); `product_id` (`uuid`, PK part, FK -> `product.id`); `quantity` (`numeric(12,3)`, required, > 0).
+- Composite PK (`package_id`, `product_id`).
 
-- `id` (UUID, PK, NOT NULL): product identifier.
-- `name` (varchar(160), NOT NULL): product name.
-- `category` (varchar(80), NOT NULL): product category.
-- `tracks_serial_number` (boolean, NOT NULL, DEFAULT false): whether individual units require serial tracking.
-- `active` (boolean, NOT NULL, DEFAULT true): whether selectable for new business.
-- `created_at` (timestamptz, NOT NULL, DEFAULT now()): creation time.
+### QUOTATION — one quotation revision
+- `id` (`uuid`, PK); `enquiry_id` (`uuid`, FK -> `enquiry.id`, required); `survey_id` (`uuid`, required composite FK -> `site_survey(id, enquiry_id)`); optional `package_id` (`uuid`, FK -> `solar_package.id`).
+- `version` (`integer`, required, > 0); unique (`enquiry_id`, `version`).
+- `status` (`varchar(24)`, required; values/transition policy need confirmation); `created_at` (`timestamptz`, required, default `now()`); `valid_until` (`date`, nullable).
+- `currency_code` (`char(3)`, required); `subtotal_amount`, `discount_amount`, `tax_amount`, `total_amount` (`numeric(14,2)`, required, nonnegative; amount formulas and applicability of discount/tax need approval).
+- Each revision is a separate row. Keep its own quotation lines and prices; do not overwrite older revisions.
 
-## PACKAGE_COMPONENT — products and quantities in a package
+### QUOTATION_LINE — historical item/price snapshot
+- `id` (`uuid`, PK); `quotation_id` (`uuid`, FK -> `quotation.id`, required); optional `product_id` (`uuid`, FK -> `product.id`).
+- `description_snapshot` (`text`, required); `quantity` (`numeric(12,3)`, required, > 0); `unit_price`, `discount_amount`, `tax_amount`, `line_total` (`numeric(14,2)`, required, nonnegative).
+- The values describe the specific quotation revision even if catalog data later changes.
 
-- `package_id` (UUID, composite PK, FK to solar_package, NOT NULL): package.
-- `product_id` (UUID, composite PK, FK to product, NOT NULL): included product.
-- `quantity` (numeric(12,3), NOT NULL): configured quantity per package; must be positive.
+## Orders and financial snapshots
 
-## QUOTATION — one immutable revision of a commercial offer
+### SALES_ORDER — accepted commercial snapshot
+- `id` (`uuid`, PK); `quotation_id` (`uuid`, FK -> `quotation.id`, required); `status` (`varchar(24)`, required; values need approval).
+- `confirmed_at` (`timestamptz`, nullable); `created_at` (`timestamptz`, required, default `now()`).
+- `currency_code` (`char(3)`, required); `subtotal_amount`, `discount_amount`, `tax_amount`, `total_amount` (`numeric(14,2)`, required, nonnegative).
+- No unique constraint on `quotation_id`; whether one quotation can produce multiple orders remains unresolved.
 
-- `id` (UUID, PK, NOT NULL): quotation revision identifier.
-- `enquiry_id` (UUID, FK to enquiry, NOT NULL): originating enquiry.
-- `survey_id` (UUID, FK to site_survey, NOT NULL): survey supporting this revision; must belong to same enquiry.
-- `package_id` (UUID, FK to solar_package, NULL): optional configured package.
-- `version` (integer, NOT NULL): revision number, starting at 1 and unique within enquiry.
-- `status` (varchar(24), NOT NULL): quotation state, such as draft, sent, accepted, rejected, expired; final enum/check list to be coordinated with backend.
-- `created_at` (timestamptz, NOT NULL, DEFAULT now()): revision creation time.
-- `valid_until` (date, NULL): expiry date.
-- `currency_code` (char(3), NOT NULL): ISO 4217 currency code.
-- `total_amount` (numeric(14,2), NOT NULL): revision total; non-negative.
+### ORDER_LINE — product/price snapshot for an order
+- `id` (`uuid`, PK); `order_id` (`uuid`, FK -> `sales_order.id`, required).
+- Optional `source_quotation_line_id` (`uuid`, FK -> `quotation_line.id`) traces the accepted quote line; optional `product_id` (`uuid`, FK -> `product.id`) supports a snapshot if a catalog item is retired.
+- `description_snapshot` (`text`, required); `quantity` (`numeric(12,3)`, required, > 0); `unit_price`, `discount_amount`, `tax_amount`, `line_total` (`numeric(14,2)`, required, nonnegative).
 
-## QUOTATION_LINE — item/charge snapshot within a quotation revision
+## Inventory, reservations, dispatch, and equipment
 
-- `id` (UUID, PK, NOT NULL): quotation line identifier.
-- `quotation_id` (UUID, FK to quotation, NOT NULL): parent revision.
-- `product_id` (UUID, FK to product, NULL): optional link to current product catalog item.
-- `description_snapshot` (text, NOT NULL): description as shown on this revision; preserved if catalog changes.
-- `quantity` (numeric(12,3), NOT NULL): quoted quantity; positive.
-- `unit_price` (numeric(14,2), NOT NULL): unit price snapshot; non-negative.
-- `line_total` (numeric(14,2), NOT NULL): line amount snapshot; non-negative.
+### INVENTORY_LOCATION — stock holding location
+- `id` (`uuid`, PK); `name` (`varchar(120)`, required); `active` (`boolean`, required, default `true`); `created_at` (`timestamptz`, required, default `now()`).
+- Whether multiple locations are needed is unresolved; one can be configured for a single-location MVP.
 
-## SALES_ORDER — accepted commercial order
+### INVENTORY_BALANCE — concurrency lock/current on-hand projection
+- Composite PK `location_id` (`uuid`, FK -> `inventory_location.id`) and `product_id` (`uuid`, FK -> `product.id`).
+- `quantity_on_hand` (`numeric(12,3)`, required, default 0, >= 0); `updated_at` (`timestamptz`, required, default `now()`).
+- Maintained transactionally with stock movements. Active reservations are separate; availability is on-hand less active, unconsumed reservations.
 
-- `id` (UUID, PK, NOT NULL): order identifier.
-- `quotation_id` (UUID, FK to quotation, NOT NULL): source quotation revision.
-- `status` (varchar(24), NOT NULL): order workflow state.
-- `confirmed_at` (timestamptz, NULL): confirmation time.
-- `created_at` (timestamptz, NOT NULL, DEFAULT now()): creation time.
+### STOCK_MOVEMENT — immutable stock event
+- `id` (`uuid`, PK); `location_id` (`uuid`, FK -> `inventory_location.id`, required); `product_id` (`uuid`, FK -> `product.id`, required); optional `order_id` (`uuid`, FK -> `sales_order.id`).
+- `movement_type` (`varchar(30)`, required; values need approval); `quantity_delta` (`numeric(12,3)`, required, nonzero); `occurred_at` (`timestamptz`, required, default `now()`); `notes` (`text`, nullable).
 
-## ORDER_LINE — product/quantity/price ordered
+### STOCK_RESERVATION — quantity allocated to an order line
+- `id` (`uuid`, PK); `location_id` (`uuid`); `order_id` (`uuid`, FK -> `sales_order.id`); `order_line_id` and `product_id` (`uuid`); composite FKs ensure balance and order-line consistency.
+- `quantity` (`numeric(12,3)`, required, > 0); `quantity_consumed` (`numeric(12,3)`, required, default 0, between 0 and quantity).
+- `status` (`varchar(20)`, required, default `active`; values need approval); `created_at` (`timestamptz`, required, default `now()`); `released_at` (`timestamptz`, nullable).
 
-- `id` (UUID, PK, NOT NULL): order line identifier.
-- `order_id` (UUID, FK to sales_order, NOT NULL): parent order.
-- `product_id` (UUID, FK to product, NOT NULL): ordered product.
-- `quantity` (numeric(12,3), NOT NULL): ordered quantity; positive.
-- `unit_price` (numeric(14,2), NOT NULL): agreed unit price snapshot; non-negative.
+### DISPATCH — outbound shipment record
+- `id` (`uuid`, PK); `order_id` (`uuid`, FK -> `sales_order.id`, required); `status` (`varchar(24)`, required; values need approval).
+- `dispatched_at`, `delivered_at` (`timestamptz`, nullable); `recipient_name` (`varchar(160)`, nullable); `notes` (`text`, nullable); `created_at` (`timestamptz`, required, default `now()`).
+- Unique (`id`, `order_id`) supports dispatch-item integrity.
 
-## STOCK_MOVEMENT — append-only stock quantity event
+### DISPATCH_ITEM — product quantity on a dispatch
+- `id` (`uuid`, PK); `dispatch_id`, `order_id` (`uuid`, required composite FK -> `dispatch(id, order_id)`).
+- Optional `order_line_id` plus `order_id` and `product_id` form a composite FK to the matching order line. `product_id` (`uuid`, FK -> `product.id`, required).
+- `quantity` (`numeric(12,3)`, required, > 0); unique (`id`, `product_id`) supports equipment consistency.
 
-- `id` (UUID, PK, NOT NULL): movement identifier.
-- `product_id` (UUID, FK to product, NOT NULL): affected product.
-- `order_id` (UUID, FK to sales_order, NULL): related order, if any.
-- `movement_type` (varchar(30), NOT NULL): receipt, dispatch, adjustment, return, or another approved movement type.
-- `quantity_delta` (numeric(12,3), NOT NULL): signed stock change; cannot be zero.
-- `occurred_at` (timestamptz, NOT NULL, DEFAULT now()): movement time.
-- `notes` (text, NULL): reason/reference.
+### EQUIPMENT_UNIT — individual serialized product unit
+- `id` (`uuid`, PK); `product_id` (`uuid`, FK -> `product.id`, required); optional `dispatch_item_id` with composite FK to `(dispatch_item.id, product_id)`; `serial_number` (`varchar(120)`, nullable); `created_at` (`timestamptz`, required, default `now()`).
+- A partial unique index makes non-null serials unique. Required serial presence for products marked `tracks_serial_number` is validated in service logic.
 
-## STOCK_RESERVATION — stock allocated to an order line
+### EQUIPMENT_EVENT — serial-unit history event
+- `id` (`uuid`, PK); `equipment_unit_id` (`uuid`, FK -> `equipment_unit.id`, required); optional `site_id` (`uuid`, FK -> `site.id`) and `installation_id` (`uuid`, FK -> `installation.id`).
+- `event_type` (`varchar(40)`, required; values need approval); `occurred_at` (`timestamptz`, required, default `now()`); `notes` (`text`, nullable).
 
-- `id` (UUID, PK, NOT NULL): reservation identifier.
-- `order_id` (UUID, FK to sales_order, NOT NULL): order owning reservation.
-- `order_line_id` (UUID, FK to order_line, NOT NULL): order line allocated.
-- `product_id` (UUID, FK to product, NOT NULL): reserved product; must match order line.
-- `quantity` (numeric(12,3), NOT NULL): reserved quantity; positive.
-- `status` (varchar(20), NOT NULL, DEFAULT 'active'): active, consumed, released, or another explicitly approved lifecycle state.
-- `created_at` (timestamptz, NOT NULL, DEFAULT now()): reservation time.
-- `released_at` (timestamptz, NULL): release/close time.
+## Installation and warranty
 
-## DISPATCH — shipment/dispatch event for an order
+### INSTALLATION — scheduled project work
+- `id` (`uuid`, PK); optional `order_id` (`uuid`, FK -> `sales_order.id`); `site_id` (`uuid`, FK -> `site.id`, required).
+- `status` (`varchar(24)`, required; values need approval); `scheduled_at`, `started_at`, `completed_at`, `customer_signed_off_at` (`timestamptz`, nullable); `created_at` (`timestamptz`, required, default `now()`).
 
-- `id` (UUID, PK, NOT NULL): dispatch identifier.
-- `order_id` (UUID, FK to sales_order, NOT NULL): order being dispatched.
-- `status` (varchar(24), NOT NULL): dispatch state.
-- `dispatched_at` (timestamptz, NULL): actual dispatch time.
-- `notes` (text, NULL): dispatch notes.
-- `created_at` (timestamptz, NOT NULL, DEFAULT now()): creation time.
+### TECHNICIAN — worker record
+- `id` (`uuid`, PK); `name` (`varchar(160)`, required); optional `phone_e164` (`varchar(16)`); `active` (`boolean`, required, default `true`); `created_at` (`timestamptz`, required, default `now()`).
 
-## DISPATCH_ITEM — product quantity within a dispatch
+### INSTALLATION_TECHNICIAN — installation assignment junction
+- `installation_id` (`uuid`, composite PK part and FK -> `installation.id`); `technician_id` (`uuid`, composite PK part and FK -> `technician.id`); `assigned_at` (`timestamptz`, required, default `now()`).
 
-- `id` (UUID, PK, NOT NULL): dispatch line identifier.
-- `dispatch_id` (UUID, FK to dispatch, NOT NULL): parent dispatch.
-- `order_line_id` (UUID, FK to order_line, NULL): order line fulfilled, if traceable.
-- `product_id` (UUID, FK to product, NOT NULL): dispatched product.
-- `quantity` (numeric(12,3), NOT NULL): dispatched quantity; positive.
+### INSTALLATION_CHECKLIST_ITEM — checklist entry for an installation
+- `id` (`uuid`, PK); `installation_id` (`uuid`, FK -> `installation.id`, required).
+- `item_key` (`varchar(80)`, required); `description_snapshot` (`text`, required); unique (`installation_id`, `item_key`).
+- `is_completed` (`boolean`, required, default `false`); `completed_at` (`timestamptz`, nullable); `notes` (`text`, nullable).
+- Required checklist template/items and completion gating need approval.
 
-## EQUIPMENT_UNIT — individual physical equipment unit
+### WARRANTY — coverage record for equipment
+- `id` (`uuid`, PK); `equipment_unit_id` (`uuid`, FK -> `equipment_unit.id`, required); `starts_on`, `ends_on` (`date`, required; end >= start); `terms` (`text`, nullable).
+- Proposed start date is the delivered date recorded for the equipment's dispatch. Because that is cross-table data, validate in transactional service logic or retain an approved delivery-date snapshot.
 
-- `id` (UUID, PK, NOT NULL): unit identifier.
-- `product_id` (UUID, FK to product, NOT NULL): product type.
-- `dispatch_item_id` (UUID, FK to dispatch_item, NULL): dispatch item from which unit originated, if applicable.
-- `serial_number` (varchar(120), NULL): manufacturer serial; required by application when product tracks serials; unique when non-null.
-- `created_at` (timestamptz, NOT NULL, DEFAULT now()): creation time.
+## Service, files, payments
 
-## EQUIPMENT_EVENT — equipment traceability history
+### SERVICE_TICKET — complaint/repair request
+- `id` (`uuid`, PK); `customer_id` (`uuid`, FK -> `customer.id`, required); optional `site_id` (`uuid`) uses composite FK with customer; optional `equipment_unit_id` (`uuid`, FK -> `equipment_unit.id`).
+- `status` (`varchar(24)`, required; values need approval); `opened_at` (`timestamptz`, required, default `now()`); `closed_at` (`timestamptz`, nullable).
 
-- `id` (UUID, PK, NOT NULL): event identifier.
-- `equipment_unit_id` (UUID, FK to equipment_unit, NOT NULL): tracked unit.
-- `site_id` (UUID, FK to site, NULL): related site, if known.
-- `installation_id` (UUID, FK to installation, NULL): related installation, if applicable.
-- `event_type` (varchar(40), NOT NULL): received, dispatched, installed, moved, serviced, returned, etc.
-- `occurred_at` (timestamptz, NOT NULL, DEFAULT now()): event time.
-- `notes` (text, NULL): event detail.
+### SERVICE_TICKET_TECHNICIAN — service assignment junction
+- `ticket_id` (`uuid`, composite PK part and FK -> `service_ticket.id`); `technician_id` (`uuid`, composite PK part and FK -> `technician.id`); `assigned_at` (`timestamptz`, required, default `now()`).
 
-## INSTALLATION — installation job at a site
+### SERVICE_ACTIVITY — service action/status history
+- `id` (`uuid`, PK); `ticket_id` (`uuid`, FK -> `service_ticket.id`, required); `occurred_at` (`timestamptz`, required, default `now()`); `activity_type` (`varchar(40)`, required).
+- Optional `from_status`/`to_status` (`varchar(24)`) capture transitions; `notes` (`text`, nullable).
 
-- `id` (UUID, PK, NOT NULL): installation identifier.
-- `order_id` (UUID, FK to sales_order, NULL): related order when available.
-- `site_id` (UUID, FK to site, NOT NULL): installation location.
-- `status` (varchar(24), NOT NULL): installation workflow state.
-- `scheduled_at` (timestamptz, NULL): planned time.
-- `started_at` (timestamptz, NULL): start time.
-- `completed_at` (timestamptz, NULL): completion time.
-- `customer_signed_off_at` (timestamptz, NULL): customer sign-off time.
-- `created_at` (timestamptz, NOT NULL, DEFAULT now()): creation time.
+### SERVICE_PART — replacement part usage
+- `id` (`uuid`, PK); `ticket_id` (`uuid`, FK -> `service_ticket.id`, required); `product_id` (`uuid`, FK -> `product.id`, required); `quantity` (`numeric(12,3)`, required, > 0).
 
-## TECHNICIAN — installation/service worker
+### FILE_ASSET — Supabase Storage metadata
+- `id` (`uuid`, PK); nullable `site_survey_id`, `installation_id`, `service_ticket_id` each references the corresponding table. A CHECK requires exactly one parent.
+- `bucket_name` (`varchar(120)`, required) and `storage_key` (`text`, required); unique (`bucket_name`, `storage_key`). `original_name` (`varchar(255)`, required); optional `content_type` (`varchar(120)`), `size_bytes` (`bigint`, >= 0), and `checksum_sha256` (`char(64)`).
+- `uploaded_at` (`timestamptz`, required, default `now()`). File bytes remain in Supabase Storage.
 
-- `id` (UUID, PK, NOT NULL): technician identifier.
-- `name` (varchar(160), NOT NULL): technician name.
-- `phone_e164` (varchar(16), NULL): normalized phone, if provided.
-- `active` (boolean, NOT NULL, DEFAULT true): availability flag.
-- `created_at` (timestamptz, NOT NULL, DEFAULT now()): creation time.
+### PAYMENT — payment attempt/receipt
+- `id` (`uuid`, PK); `order_id` (`uuid`, FK -> `sales_order.id`, required); `amount` (`numeric(14,2)`, required, > 0); `currency_code` (`char(3)`, required).
+- `status` (`varchar(20)`, required; allowed values need approval); optional `external_reference` (`varchar(160)`), `paid_at` (`timestamptz`); `created_at` (`timestamptz`, required, default `now()`).
 
-## INSTALLATION_TECHNICIAN — technician assignment junction
+### PAYMENT_REFUND — refund/reversal record
+- `id` (`uuid`, PK); `payment_id` (`uuid`, FK -> `payment.id`, required); `amount` (`numeric(14,2)`, required, > 0); `status` (`varchar(20)`, required; values need approval).
+- Optional `reason` (`text`), `external_reference` (`varchar(160)`), `refunded_at` (`timestamptz`); `created_at` (`timestamptz`, required, default `now()`).
+- Aggregate refunds must not exceed the eligible paid amount; enforce transactionally.
 
-- `installation_id` (UUID, composite PK, FK to installation, NOT NULL): installation job.
-- `technician_id` (UUID, composite PK, FK to technician, NOT NULL): assigned technician.
-- `assigned_at` (timestamptz, NOT NULL, DEFAULT now()): assignment time.
+## Shared decisions and caveats
 
-## WARRANTY — coverage period for an equipment unit
-
-- `id` (UUID, PK, NOT NULL): warranty identifier.
-- `equipment_unit_id` (UUID, FK to equipment_unit, NOT NULL): covered unit.
-- `starts_on` (date, NOT NULL): warranty start date; business rule starts from recorded delivery date.
-- `ends_on` (date, NOT NULL): warranty end date; must be on/after start.
-- `terms` (text, NULL): coverage details.
-
-## SERVICE_TICKET — customer support/service request
-
-- `id` (UUID, PK, NOT NULL): ticket identifier.
-- `customer_id` (UUID, FK to customer, NOT NULL): customer raising ticket.
-- `site_id` (UUID, FK to site, NULL): related site, if known.
-- `equipment_unit_id` (UUID, FK to equipment_unit, NULL): affected unit, if known.
-- `status` (varchar(24), NOT NULL): ticket state; do not mark resolved/closed until customer confirms resolution.
-- `opened_at` (timestamptz, NOT NULL, DEFAULT now()): opening time.
-- `closed_at` (timestamptz, NULL): closure time.
-
-## SERVICE_ACTIVITY — service ticket event log
-
-- `id` (UUID, PK, NOT NULL): activity identifier.
-- `ticket_id` (UUID, FK to service_ticket, NOT NULL): parent ticket.
-- `occurred_at` (timestamptz, NOT NULL, DEFAULT now()): activity time.
-- `activity_type` (varchar(40), NOT NULL): activity category.
-- `notes` (text, NULL): work performed/communication.
-
-## SERVICE_PART — part consumed for a service ticket
-
-- `id` (UUID, PK, NOT NULL): part usage identifier.
-- `ticket_id` (UUID, FK to service_ticket, NOT NULL): service ticket.
-- `product_id` (UUID, FK to product, NOT NULL): part/product used.
-- `quantity` (numeric(12,3), NOT NULL): quantity used; positive.
-
-## FILE_ASSET — metadata for files in Supabase Storage
-
-- `id` (UUID, PK, NOT NULL): file metadata identifier.
-- `site_survey_id` (UUID, FK to site_survey, NULL): survey parent, when this is the attachment type.
-- `installation_id` (UUID, FK to installation, NULL): installation parent, when this is the attachment type.
-- `service_ticket_id` (UUID, FK to service_ticket, NULL): ticket parent, when this is the attachment type.
-- `storage_key` (text, NOT NULL): object key/path in Supabase Storage; do not store file bytes here.
-- `original_name` (varchar(255), NOT NULL): original uploaded filename.
-- `content_type` (varchar(120), NULL): MIME type if known.
-- `uploaded_at` (timestamptz, NOT NULL, DEFAULT now()): upload time.
-- Exactly one of the three parent IDs must be populated.
-
-## PAYMENT — payment attempt/receipt against an order
-
-- `id` (UUID, PK, NOT NULL): payment identifier.
-- `order_id` (UUID, FK to sales_order, NOT NULL): order receiving payment.
-- `amount` (numeric(14,2), NOT NULL): positive payment amount.
-- `currency_code` (char(3), NOT NULL): ISO 4217 currency.
-- `paid_at` (timestamptz, NULL): actual paid timestamp; null until confirmed paid.
-- `status` (varchar(20), NOT NULL): payment state such as pending, paid, failed, refunded; exact allowed values to be finalized with backend implementation.
-- `created_at` (timestamptz, NOT NULL, DEFAULT now()): record creation time.
-
-## Shared data conventions
-
-- UUIDs are used for all surrogate identifiers.
-- E.164 phone numbers include a leading `+` and country calling code. For MVP, frontend accepts a 10-digit Indian number; backend applies configurable default country `+91`, validates, and stores normalized E.164. Never infer identity from phone number.
-- Monetary values use `numeric(12,2)` or `numeric(14,2)` and an associated currency code; do not use `float`/`double precision`.
-- `monthly_bill` on enquiry is the customer's initial estimate; survey `monthly_bill` is the subsequently confirmed/updated value.
+- Customer phone is not globally unique. Store as text in E.164 form after backend normalization; do not use it as identity.
+- The README's React/Zod and FastAPI/Pydantic architecture suggests API validation at both boundaries. The actual frontend source/contracts were unavailable during this documentation update; align names, nullability, allowed values, and JSON aliases with Member 3 before freezing API behavior.
+- `numeric` scales, India as the default country, ISO currency handling, statuses outside enquiry, reviewer identity, refund rules, and single/partial delivery behavior require team review.
+- Canonical column names and exact nullability are the PostgreSQL DDL in `02-database-schema.md`; if this dictionary differs, the mismatch is a documentation defect to fix before implementation.

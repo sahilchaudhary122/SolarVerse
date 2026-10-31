@@ -1,14 +1,9 @@
-# 1. Final ER Diagram
+# SolarVerse ER Diagram — Database Design Version 1.1
 
-**TEAM-APPROVED INITIAL DATABASE DESIGN – VERSION 1.0**  
-Project: SolarVerse  
-Status: Approved initial design for backend implementation  
-Database: PostgreSQL  
-Identifier convention: UUID primary keys
+**PROPOSED – PENDING TEAM APPROVAL**
+Version 1.0 is preserved in Git history at commit `f2b449c`. This diagram represents the proposed PostgreSQL schema in `02-database-schema.md`; it is not a finalized business contract. Optional tables may be out of hackathon scope.
 
-> This is the initial MVP design. Optional modules and detailed business policies must be implemented only within the rules below and coordinated with the team.
-
-## Entity relationship diagram
+## Mermaid ER diagram
 
 ```mermaid
 erDiagram
@@ -16,47 +11,55 @@ erDiagram
     CUSTOMER ||--o{ ENQUIRY : submits
     SITE ||--o{ ENQUIRY : concerns
     ENQUIRY ||--o{ CUSTOMER_INTERACTION : has
+    ENQUIRY ||--o{ ENQUIRY_STATUS_HISTORY : records
     ENQUIRY ||--o{ SITE_SURVEY : receives
     SITE ||--o{ SITE_SURVEY : inspected_at
+    SITE_SURVEY ||--o{ SITE_SURVEY_REVIEW : has_review
 
     ENQUIRY ||--o{ QUOTATION : receives_revisions
     SITE_SURVEY ||--o{ QUOTATION : supports
     SOLAR_PACKAGE o|--o{ QUOTATION : selected_for
     QUOTATION ||--|{ QUOTATION_LINE : contains
-
-    SOLAR_PACKAGE ||--|{ PACKAGE_COMPONENT : contains
+    PRODUCT o|--o{ QUOTATION_LINE : quoted_as
+    SOLAR_PACKAGE ||--o{ PACKAGE_COMPONENT : contains
     PRODUCT ||--o{ PACKAGE_COMPONENT : included_in
 
     QUOTATION ||--o{ SALES_ORDER : may_lead_to
     SALES_ORDER ||--|{ ORDER_LINE : contains
-    PRODUCT ||--o{ ORDER_LINE : ordered_as
+    QUOTATION_LINE o|--o{ ORDER_LINE : snapshot_source
+    PRODUCT o|--o{ ORDER_LINE : ordered_as
 
-    PRODUCT ||--o{ STOCK_MOVEMENT : records
+    INVENTORY_LOCATION ||--o{ INVENTORY_BALANCE : holds
+    PRODUCT ||--o{ INVENTORY_BALANCE : balanced_for
+    INVENTORY_LOCATION ||--o{ STOCK_MOVEMENT : records
+    PRODUCT ||--o{ STOCK_MOVEMENT : moves
     SALES_ORDER o|--o{ STOCK_MOVEMENT : associated_with
+    INVENTORY_BALANCE ||--o{ STOCK_RESERVATION : allocates_from
     SALES_ORDER ||--o{ STOCK_RESERVATION : reserves
     ORDER_LINE ||--o{ STOCK_RESERVATION : allocated_to
-    PRODUCT ||--o{ STOCK_RESERVATION : reserved_as
 
     SALES_ORDER ||--o{ DISPATCH : dispatched_through
     DISPATCH ||--|{ DISPATCH_ITEM : contains
     ORDER_LINE o|--o{ DISPATCH_ITEM : fulfills
     PRODUCT ||--o{ DISPATCH_ITEM : dispatched_as
     PRODUCT ||--o{ EQUIPMENT_UNIT : identifies
-    DISPATCH_ITEM o|--o{ EQUIPMENT_UNIT : may_identify
+    DISPATCH_ITEM o|--o{ EQUIPMENT_UNIT : identifies_unit
+    EQUIPMENT_UNIT ||--o{ EQUIPMENT_EVENT : has_history
+    SITE o|--o{ EQUIPMENT_EVENT : occurs_at
+    INSTALLATION o|--o{ EQUIPMENT_EVENT : occurs_during
+    EQUIPMENT_UNIT ||--o{ WARRANTY : covered_by
 
     SITE ||--o{ INSTALLATION : installed_at
     SALES_ORDER o|--o{ INSTALLATION : schedules
     INSTALLATION ||--o{ INSTALLATION_TECHNICIAN : assigned
     TECHNICIAN ||--o{ INSTALLATION_TECHNICIAN : works_on
-
-    EQUIPMENT_UNIT ||--o{ EQUIPMENT_EVENT : has
-    SITE o|--o{ EQUIPMENT_EVENT : occurs_at
-    INSTALLATION o|--o{ EQUIPMENT_EVENT : occurs_during
-    EQUIPMENT_UNIT ||--o{ WARRANTY : covered_by
+    INSTALLATION ||--o{ INSTALLATION_CHECKLIST_ITEM : checklist
 
     CUSTOMER ||--o{ SERVICE_TICKET : raises
     SITE o|--o{ SERVICE_TICKET : concerns
     EQUIPMENT_UNIT o|--o{ SERVICE_TICKET : concerns
+    SERVICE_TICKET ||--o{ SERVICE_TICKET_TECHNICIAN : assigned
+    TECHNICIAN ||--o{ SERVICE_TICKET_TECHNICIAN : works_on
     SERVICE_TICKET ||--o{ SERVICE_ACTIVITY : records
     SERVICE_TICKET ||--o{ SERVICE_PART : uses
     PRODUCT ||--o{ SERVICE_PART : supplied_as
@@ -65,21 +68,335 @@ erDiagram
     INSTALLATION o|--o{ FILE_ASSET : attaches
     SERVICE_TICKET o|--o{ FILE_ASSET : attaches
 
-    SALES_ORDER ||--o{ PAYMENT : may_receive
+    SALES_ORDER ||--o{ PAYMENT : receives
+    PAYMENT ||--o{ PAYMENT_REFUND : may_be_refunded_by
+
+    CUSTOMER {
+        uuid id PK
+        varchar name
+        varchar phone_e164
+        varchar email
+        timestamptz created_at
+    }
+    SITE {
+        uuid id PK
+        uuid customer_id FK
+        varchar label
+        text address_line
+        varchar city
+        varchar state
+        varchar postal_code
+        char country_code
+        timestamptz created_at
+    }
+    ENQUIRY {
+        uuid id PK
+        uuid customer_id FK
+        uuid site_id FK
+        numeric requested_capacity_kw
+        varchar requested_system_type
+        numeric monthly_bill
+        char monthly_bill_currency_code
+        text requirements
+        varchar status
+        timestamptz created_at
+    }
+    CUSTOMER_INTERACTION {
+        uuid id PK
+        uuid enquiry_id FK
+        varchar interaction_type
+        text notes
+        timestamptz occurred_at
+        timestamptz created_at
+    }
+    ENQUIRY_STATUS_HISTORY {
+        uuid id PK
+        uuid enquiry_id FK
+        varchar from_status
+        varchar to_status
+        timestamptz changed_at
+        text reason
+    }
+    SITE_SURVEY {
+        uuid id PK
+        uuid enquiry_id FK
+        uuid site_id FK
+        timestamptz scheduled_at
+        numeric roof_area_sqm
+        varchar roof_direction
+        numeric roof_tilt_degrees
+        numeric shadow_free_area_sqm
+        numeric monthly_bill
+        char monthly_bill_currency_code
+        numeric cable_distance_m
+        boolean grid_suitability
+        varchar status
+        timestamptz submitted_at
+        timestamptz approved_at
+        timestamptz created_at
+    }
+    SITE_SURVEY_REVIEW {
+        uuid id PK
+        uuid survey_id FK
+        varchar decision
+        text reviewer_label
+        timestamptz reviewed_at
+        text notes
+    }
+    SOLAR_PACKAGE {
+        uuid id PK
+        varchar name
+        numeric capacity_kw
+        varchar system_type
+        boolean active
+        timestamptz created_at
+    }
+    PRODUCT {
+        uuid id PK
+        varchar name
+        varchar category
+        boolean tracks_serial_number
+        boolean active
+        timestamptz created_at
+    }
+    PACKAGE_COMPONENT {
+        uuid package_id PK, FK
+        uuid product_id PK, FK
+        numeric quantity
+    }
+    QUOTATION {
+        uuid id PK
+        uuid enquiry_id FK
+        uuid survey_id FK
+        uuid package_id FK
+        integer version
+        varchar status
+        timestamptz created_at
+        date valid_until
+        char currency_code
+        numeric subtotal_amount
+        numeric discount_amount
+        numeric tax_amount
+        numeric total_amount
+    }
+    QUOTATION_LINE {
+        uuid id PK
+        uuid quotation_id FK
+        uuid product_id FK
+        text description_snapshot
+        numeric quantity
+        numeric unit_price
+        numeric discount_amount
+        numeric tax_amount
+        numeric line_total
+    }
+    SALES_ORDER {
+        uuid id PK
+        uuid quotation_id FK
+        varchar status
+        timestamptz confirmed_at
+        timestamptz created_at
+        char currency_code
+        numeric subtotal_amount
+        numeric discount_amount
+        numeric tax_amount
+        numeric total_amount
+    }
+    ORDER_LINE {
+        uuid id PK
+        uuid order_id FK
+        uuid source_quotation_line_id FK
+        uuid product_id FK
+        text description_snapshot
+        numeric quantity
+        numeric unit_price
+        numeric discount_amount
+        numeric tax_amount
+        numeric line_total
+    }
+    INVENTORY_LOCATION {
+        uuid id PK
+        varchar name
+        boolean active
+        timestamptz created_at
+    }
+    INVENTORY_BALANCE {
+        uuid location_id PK, FK
+        uuid product_id PK, FK
+        numeric quantity_on_hand
+        timestamptz updated_at
+    }
+    STOCK_MOVEMENT {
+        uuid id PK
+        uuid location_id FK
+        uuid product_id FK
+        uuid order_id FK
+        varchar movement_type
+        numeric quantity_delta
+        timestamptz occurred_at
+        text notes
+    }
+    STOCK_RESERVATION {
+        uuid id PK
+        uuid location_id FK
+        uuid order_id FK
+        uuid order_line_id FK
+        uuid product_id FK
+        numeric quantity
+        numeric quantity_consumed
+        varchar status
+        timestamptz created_at
+        timestamptz released_at
+    }
+    DISPATCH {
+        uuid id PK
+        uuid order_id FK
+        varchar status
+        timestamptz dispatched_at
+        timestamptz delivered_at
+        varchar recipient_name
+        text notes
+        timestamptz created_at
+    }
+    DISPATCH_ITEM {
+        uuid id PK
+        uuid dispatch_id FK
+        uuid order_id FK
+        uuid order_line_id FK
+        uuid product_id FK
+        numeric quantity
+    }
+    EQUIPMENT_UNIT {
+        uuid id PK
+        uuid product_id FK
+        uuid dispatch_item_id FK
+        varchar serial_number
+        timestamptz created_at
+    }
+    EQUIPMENT_EVENT {
+        uuid id PK
+        uuid equipment_unit_id FK
+        uuid site_id FK
+        uuid installation_id FK
+        varchar event_type
+        timestamptz occurred_at
+        text notes
+    }
+    INSTALLATION {
+        uuid id PK
+        uuid order_id FK
+        uuid site_id FK
+        varchar status
+        timestamptz scheduled_at
+        timestamptz started_at
+        timestamptz completed_at
+        timestamptz customer_signed_off_at
+        timestamptz created_at
+    }
+    TECHNICIAN {
+        uuid id PK
+        varchar name
+        varchar phone_e164
+        boolean active
+        timestamptz created_at
+    }
+    INSTALLATION_TECHNICIAN {
+        uuid installation_id PK, FK
+        uuid technician_id PK, FK
+        timestamptz assigned_at
+    }
+    INSTALLATION_CHECKLIST_ITEM {
+        uuid id PK
+        uuid installation_id FK
+        varchar item_key
+        text description_snapshot
+        boolean is_completed
+        timestamptz completed_at
+        text notes
+    }
+    WARRANTY {
+        uuid id PK
+        uuid equipment_unit_id FK
+        date starts_on
+        date ends_on
+        text terms
+    }
+    SERVICE_TICKET {
+        uuid id PK
+        uuid customer_id FK
+        uuid site_id FK
+        uuid equipment_unit_id FK
+        varchar status
+        timestamptz opened_at
+        timestamptz closed_at
+    }
+    SERVICE_TICKET_TECHNICIAN {
+        uuid ticket_id PK, FK
+        uuid technician_id PK, FK
+        timestamptz assigned_at
+    }
+    SERVICE_ACTIVITY {
+        uuid id PK
+        uuid ticket_id FK
+        varchar activity_type
+        varchar from_status
+        varchar to_status
+        timestamptz occurred_at
+        text notes
+    }
+    SERVICE_PART {
+        uuid id PK
+        uuid ticket_id FK
+        uuid product_id FK
+        numeric quantity
+    }
+    FILE_ASSET {
+        uuid id PK
+        uuid site_survey_id FK
+        uuid installation_id FK
+        uuid service_ticket_id FK
+        varchar bucket_name
+        text storage_key
+        varchar original_name
+        varchar content_type
+        bigint size_bytes
+        char checksum_sha256
+        timestamptz uploaded_at
+    }
+    PAYMENT {
+        uuid id PK
+        uuid order_id FK
+        numeric amount
+        char currency_code
+        varchar status
+        timestamptz paid_at
+        varchar external_reference
+        timestamptz created_at
+    }
+    PAYMENT_REFUND {
+        uuid id PK
+        uuid payment_id FK
+        numeric amount
+        varchar status
+        text reason
+        varchar external_reference
+        timestamptz refunded_at
+        timestamptz created_at
+    }
 ```
 
-## Cardinality and implementation notes
+## Notes and unresolved cardinalities
 
-- Each `SITE` belongs to exactly one `CUSTOMER`; a customer may have multiple sites.
-- For the MVP, every submitted enquiry creates a new customer and a new site. `ENQUIRY.customer_id` and `ENQUIRY.site_id` are required. Existing-customer/site selection is a later enhancement.
-- Each enquiry belongs to one customer and one site. An enquiry can have multiple interactions, surveys and quotation revisions.
-- Every quotation revision belongs to one enquiry and one survey. A quotation may optionally reference a configured package.
-- A quotation contains one or more quotation lines; an order contains one or more order lines; a dispatch contains one or more dispatch items. The minimum-one-child rule must be validated by application/service logic and transaction handling; a normal foreign key alone does not enforce it.
-- Each sales order references exactly one quotation. A quotation may lead to zero or more sales orders in this initial model. If the business later requires at most one order per quotation, add a unique constraint after team approval.
-- Each payment references exactly one sales order. An order may have zero or more partial payments.
-- `PACKAGE_COMPONENT` and `INSTALLATION_TECHNICIAN` are junction tables implementing many-to-many relationships.
-- Optional references are nullable and shown with `o|` on the relevant parent endpoint. Required references are non-null and shown with `||`.
-- File bytes are stored in Supabase Storage. `FILE_ASSET` stores metadata and the storage key only.
-- Equipment serial numbers are nullable for products that do not require serial tracking. For serial-tracked products, require a serial number in backend validation; uniqueness applies to non-null serial numbers.
-- `FILE_ASSET` may reference one parent only (survey, installation or service ticket). Enforce exactly one parent with a database check constraint.
-- The diagram is conceptual. The schema and data dictionary define exact FK names, nullability and constraints.
+- `ENQUIRY` keeps the eight existing statuses: `new`, `contacted`, `survey_pending`, `qualified`, `quoted`, `converted`, `lost`, `cancelled`.
+- A quotation revision is a separate `QUOTATION` row, unique by (`enquiry_id`, `version`), with its own lines and historical prices.
+- Every order references one quotation; a quotation can currently lead to multiple orders because no unique constraint on `sales_order.quotation_id` is proposed.
+- Every payment references one order; each payment may have zero or more refund records. Refund totals must be checked transactionally against captured payment totals.
+- Mermaid uses `|{` for quotation/order/dispatch rows expected to contain at least one line/item. A foreign key alone does not enforce that parent-side minimum; the API/service must prevent sending/accepting an empty quotation or confirming an empty order/dispatch.
+- `PACKAGE_COMPONENT`, `INVENTORY_BALANCE`, `INSTALLATION_TECHNICIAN`, and `SERVICE_TICKET_TECHNICIAN` are composite-key/link tables.
+- `FILE_ASSET` has three nullable parent FKs but a check requires exactly one to be populated.
+- `dispatch.delivered_at` represents delivery completion for the dispatch. Partial deliveries at different times are not fully represented; see unresolved decisions.
+- The database schema file is authoritative for exact types, nullability, named constraints, and indexes. This diagram must be updated alongside any approved schema change.
+
+## Review areas represented
+
+Financial snapshots; dispatch/delivery and warranty dates; inventory balance/reservation concurrency; installation checklist items; enquiry/status history and service status events; payment refunds; quotation revisions; service-ticket technician assignments; composite cross-table integrity; product/serialized equipment; survey reviews; Supabase file metadata; PostgreSQL naming/types/index standards; and schema/dictionary synchronization are represented in the related documents.
