@@ -1,0 +1,1 @@
+"""SolarVerse FastAPI application package."""
