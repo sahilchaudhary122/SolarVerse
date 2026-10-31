@@ -112,6 +112,12 @@ class Enquiry(Base):
         foreign_keys=lambda: [Enquiry.customer_id, Enquiry.site_id],
         viewonly=True,
     )
+    interactions: Mapped[list["CustomerInteraction"]] = relationship(
+        back_populates="enquiry",
+        foreign_keys="CustomerInteraction.enquiry_id",
+        passive_deletes=True,
+    )
 
 
+from app.models.customer_interaction import CustomerInteraction
 from app.models.site import Site
