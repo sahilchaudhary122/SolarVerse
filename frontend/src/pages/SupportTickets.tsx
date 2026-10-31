@@ -1,13 +1,24 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { ArrowLeft, LifeBuoy, Plus, CheckCircle2, Clock } from 'lucide-react'
+import { ArrowLeft, LifeBuoy, Plus, CheckCircle2, Clock, AlertCircle, FileText } from 'lucide-react'
+import type { TicketStatus } from '../types'
+
+interface Ticket {
+  id: string;
+  subject: string;
+  customer: string;
+  status: TicketStatus;
+  priority: string;
+  date: string;
+}
 
 export function SupportTickets() {
-  const [tickets, setTickets] = useState([
-    { id: 'T-101', subject: 'Inverter Fault Error 302', customer: 'Rahul Sharma', status: 'Open', priority: 'High', date: 'Today, 09:15 AM' },
-    { id: 'T-102', subject: 'Scheduled Panel Cleaning', customer: 'Priya Patel', status: 'Closed', priority: 'Normal', date: 'Yesterday' },
-    { id: 'T-103', subject: 'Battery Storage Capacity Drop', customer: 'Vikram Singh', status: 'Open', priority: 'Urgent', date: '2 days ago' },
-    { id: 'T-104', subject: 'Smart Meter Wi-Fi Pairing Issue', customer: 'Ananya Gupta', status: 'Closed', priority: 'Low', date: '3 days ago' },
+  const [tickets, setTickets] = useState<Ticket[]>([
+    { id: 'T-101', subject: 'Inverter Fault Error 302', customer: 'Rahul Sharma', status: 'IN_PROGRESS', priority: 'High', date: 'Today, 09:15 AM' },
+    { id: 'T-102', subject: 'Scheduled Panel Cleaning', customer: 'Priya Patel', status: 'CLOSED', priority: 'Normal', date: 'Yesterday' },
+    { id: 'T-103', subject: 'Battery Storage Capacity Drop', customer: 'Vikram Singh', status: 'CUSTOMER_CONFIRMATION', priority: 'Urgent', date: '2 days ago' },
+    { id: 'T-104', subject: 'Smart Meter Wi-Fi Pairing Issue', customer: 'Ananya Gupta', status: 'OPEN', priority: 'Low', date: '3 days ago' },
+    { id: 'T-105', subject: 'Grid Synchronization Check', customer: 'Rajesh Kumar', status: 'RESOLUTION_PENDING', priority: 'High', date: '4 days ago' },
   ])
 
   const [showNewModal, setShowNewModal] = useState(false)
@@ -19,11 +30,11 @@ export function SupportTickets() {
     e.preventDefault()
     if (!newSubject.trim()) return
     const nextId = `T-${101 + tickets.length}`
-    const ticket = {
+    const ticket: Ticket = {
       id: nextId,
       subject: newSubject,
       customer: newCustomer || 'Walk-in Client',
-      status: 'Open',
+      status: 'OPEN',
       priority: newPriority,
       date: 'Just now',
     }
@@ -33,10 +44,26 @@ export function SupportTickets() {
     setShowNewModal(false)
   }
 
-  const toggleStatus = (id: string) => {
+  const handleCustomerSignOff = (id: string) => {
     setTickets((prev) =>
-      prev.map((t) => (t.id === id ? { ...t, status: t.status === 'Open' ? 'Closed' : 'Open' } : t))
+      prev.map((t) => (t.id === id ? { ...t, status: 'CLOSED' } : t))
     )
+  }
+
+  const getStatusBadge = (status: TicketStatus) => {
+    switch (status) {
+      case 'OPEN':
+        return { color: 'bg-red-500/10 text-red-600 dark:text-red-400 border-red-500/30', icon: AlertCircle, label: 'OPEN' }
+      case 'IN_PROGRESS':
+        return { color: 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/30', icon: Clock, label: 'IN PROGRESS' }
+      case 'RESOLUTION_PENDING':
+      case 'CUSTOMER_CONFIRMATION':
+        return { color: 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/30', icon: FileText, label: status === 'RESOLUTION_PENDING' ? 'RESOLUTION PENDING' : 'CUSTOMER CONFIRMATION' }
+      case 'CLOSED':
+        return { color: 'bg-green-500/10 text-green-600 dark:text-green-400 border-green-500/30', icon: CheckCircle2, label: 'CLOSED' }
+      default:
+        return { color: 'bg-gray-500/10 text-gray-600 dark:text-gray-400 border-gray-500/30', icon: Clock, label: status }
+    }
   }
 
   return (
@@ -66,7 +93,7 @@ export function SupportTickets() {
       <main className="flex-1 max-w-5xl w-full mx-auto p-6 sm:p-10 space-y-8">
         {/* Modal for New Ticket */}
         {showNewModal && (
-          <div className="glass-panel p-6 sm:p-8 rounded-3xl space-y-6 animate-fade-in-up border-2 border-amber-500/30">
+          <div className="glass-panel p-6 sm:p-8 rounded-3xl space-y-6 animate-fade-in-up border-2 border-amber-500/30 bg-white dark:bg-gray-900 shadow-xl">
             <div className="flex items-center justify-between pb-4 border-b border-gray-200/50 dark:border-gray-800">
               <h3 className="text-xl font-bold">Create New Support Ticket</h3>
               <button onClick={() => setShowNewModal(false)} className="text-gray-400 hover:text-gray-600 font-bold">✕</button>
@@ -128,56 +155,65 @@ export function SupportTickets() {
         )}
 
         {/* Tickets List */}
-        <div className="glass-panel p-6 sm:p-8 rounded-3xl space-y-6">
+        <div className="glass-panel p-6 sm:p-8 rounded-3xl space-y-6 bg-white dark:bg-gray-900 shadow-xl border border-gray-200 dark:border-gray-800">
           <div className="flex items-center justify-between pb-4 border-b border-gray-200/50 dark:border-gray-800">
             <h3 className="text-xl font-bold flex items-center gap-2">
               <LifeBuoy className="w-5 h-5 text-amber-500" /> Active Maintenance Queue ({tickets.length})
             </h3>
-            <span className="text-xs text-gray-500">Click status badge to toggle Open / Closed</span>
+            <span className="text-xs text-gray-500">Tickets remain active until customer confirmation/sign-off</span>
           </div>
 
           <div className="space-y-3">
-            {tickets.map((t) => (
-              <div
-                key={t.id}
-                className="flex flex-col sm:flex-row sm:items-center justify-between p-5 rounded-2xl bg-white/50 dark:bg-gray-800/50 border border-gray-200/50 dark:border-gray-700/50 hover:border-amber-500/50 transition gap-4 shadow-sm"
-              >
-                <div className="flex items-start sm:items-center space-x-4">
-                  <div className="w-12 h-12 rounded-2xl bg-amber-500/10 flex items-center justify-center text-amber-500 font-mono font-black shrink-0">
-                    {t.id}
-                  </div>
-                  <div className="space-y-1">
-                    <div className="flex items-center space-x-2 flex-wrap gap-y-1">
-                      <span className="font-bold text-base">{t.subject}</span>
-                      <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold ${
-                        t.priority === 'Urgent' ? 'bg-red-500/10 text-red-600 dark:text-red-400' :
-                        t.priority === 'High' ? 'bg-orange-500/10 text-orange-600 dark:text-orange-400' :
-                        'bg-blue-500/10 text-blue-600 dark:text-blue-400'
-                      }`}>
-                        {t.priority}
-                      </span>
-                    </div>
-                    <p className="text-xs text-gray-500 dark:text-gray-400">
-                      Customer: <span className="font-semibold text-gray-700 dark:text-gray-300">{t.customer}</span> • {t.date}
-                    </p>
-                  </div>
-                </div>
+            {tickets.map((t) => {
+              const badge = getStatusBadge(t.status)
+              const BadgeIcon = badge.icon
+              const isPendingConfirmation = t.status === 'RESOLUTION_PENDING' || t.status === 'CUSTOMER_CONFIRMATION'
 
-                <div className="flex items-center space-x-3 self-end sm:self-center">
-                  <button
-                    onClick={() => toggleStatus(t.id)}
-                    className={`px-3.5 py-1.5 rounded-full text-xs font-bold flex items-center gap-1.5 transition ${
-                      t.status === 'Open'
-                        ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400 hover:bg-amber-500/20 border border-amber-500/30'
-                        : 'bg-green-500/10 text-green-600 dark:text-green-400 hover:bg-green-500/20 border border-green-500/30'
-                    }`}
-                  >
-                    {t.status === 'Open' ? <Clock className="w-3.5 h-3.5" /> : <CheckCircle2 className="w-3.5 h-3.5" />}
-                    <span>Status: {t.status}</span>
-                  </button>
+              return (
+                <div
+                  key={t.id}
+                  className="flex flex-col sm:flex-row sm:items-center justify-between p-5 rounded-2xl bg-white/50 dark:bg-gray-800/50 border border-gray-200/50 dark:border-gray-700/50 hover:border-amber-500/50 transition gap-4 shadow-sm"
+                >
+                  <div className="flex items-start sm:items-center space-x-4">
+                    <div className="w-12 h-12 rounded-2xl bg-amber-500/10 flex items-center justify-center text-amber-500 font-mono font-black shrink-0">
+                      {t.id}
+                    </div>
+                    <div className="space-y-1">
+                      <div className="flex items-center space-x-2 flex-wrap gap-y-1">
+                        <span className="font-bold text-base">{t.subject}</span>
+                        <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold ${
+                          t.priority === 'Urgent' ? 'bg-red-500/10 text-red-600 dark:text-red-400' :
+                          t.priority === 'High' ? 'bg-orange-500/10 text-orange-600 dark:text-orange-400' :
+                          'bg-blue-500/10 text-blue-600 dark:text-blue-400'
+                        }`}>
+                          {t.priority}
+                        </span>
+                      </div>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">
+                        Customer: <span className="font-semibold text-gray-700 dark:text-gray-300">{t.customer}</span> • {t.date}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center space-x-3 self-end sm:self-center flex-wrap gap-2">
+                    <span className={`px-3.5 py-1.5 rounded-full text-xs font-bold flex items-center gap-1.5 border ${badge.color}`}>
+                      <BadgeIcon className="w-3.5 h-3.5" />
+                      <span>{badge.label}</span>
+                    </span>
+
+                    {isPendingConfirmation && (
+                      <button
+                        onClick={() => handleCustomerSignOff(t.id)}
+                        className="px-3.5 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-gray-900 text-xs font-bold shadow transition flex items-center gap-1"
+                      >
+                        <CheckCircle2 className="w-3.5 h-3.5" />
+                        <span>Customer Sign-off</span>
+                      </button>
+                    )}
+                  </div>
                 </div>
-              </div>
-            ))}
+              )
+            })}
           </div>
         </div>
       </main>

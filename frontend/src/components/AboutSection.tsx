@@ -4,7 +4,7 @@ export function AboutSection() {
   const points = [
     {
       icon: Zap,
-      title: 'Peak Shaving',
+      title: 'Peak Saving',
       description: 'Intelligently reduce your highest electricity demand spikes to dramatically lower commercial and residential utility bills.',
     },
     {

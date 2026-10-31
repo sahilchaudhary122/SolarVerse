@@ -1,6 +1,8 @@
-import { Link, useLocation } from 'react-router-dom'
-import { Sun, Calculator, BarChart3, Users, Wrench, ArrowUpRight, ShieldCheck, Home, QrCode, LifeBuoy } from 'lucide-react'
+import { useState } from 'react'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { Sun, Calculator, BarChart3, Users, Wrench, ArrowUpRight, ShieldCheck, Home, QrCode, LifeBuoy, CheckCircle2, Compass, CreditCard } from 'lucide-react'
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid } from 'recharts'
+import type { UserRole } from '../types'
 
 const revenueData = [
   { month: 'Nov', revenue: 520000 },
@@ -13,6 +15,8 @@ const revenueData = [
 
 export function Dashboard() {
   const location = useLocation()
+  const navigate = useNavigate()
+  const [userRole, setUserRole] = useState<UserRole>('management')
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-950 text-gray-900 dark:text-gray-100 flex flex-col md:flex-row">
@@ -94,6 +98,42 @@ export function Dashboard() {
               <LifeBuoy className="w-5 h-5 text-amber-500" />
               <span>Tickets</span>
             </Link>
+
+            <Link
+              to="/dashboard/enquiries"
+              className={`flex items-center space-x-3 px-4 py-3 rounded-xl font-semibold transition ${
+                location.pathname === '/dashboard/enquiries'
+                  ? 'bg-amber-500/20 text-amber-600 dark:text-amber-400 font-bold'
+                  : 'hover:bg-amber-500/10 text-gray-700 dark:text-gray-300'
+              }`}
+            >
+              <Users className="w-5 h-5 text-amber-500" />
+              <span>Enquiries List</span>
+            </Link>
+
+            <Link
+              to="/dashboard/survey"
+              className={`flex items-center space-x-3 px-4 py-3 rounded-xl font-semibold transition ${
+                location.pathname === '/dashboard/survey'
+                  ? 'bg-amber-500/20 text-amber-600 dark:text-amber-400 font-bold'
+                  : 'hover:bg-amber-500/10 text-gray-700 dark:text-gray-300'
+              }`}
+            >
+              <Compass className="w-5 h-5 text-amber-500" />
+              <span>Site Survey</span>
+            </Link>
+
+            <Link
+              to="/dashboard/orders"
+              className={`flex items-center space-x-3 px-4 py-3 rounded-xl font-semibold transition ${
+                location.pathname === '/dashboard/orders'
+                  ? 'bg-amber-500/20 text-amber-600 dark:text-amber-400 font-bold'
+                  : 'hover:bg-amber-500/10 text-gray-700 dark:text-gray-300'
+              }`}
+            >
+              <CreditCard className="w-5 h-5 text-amber-500" />
+              <span>Orders & Payments</span>
+            </Link>
           </nav>
         </div>
 
@@ -107,12 +147,31 @@ export function Dashboard() {
 
       {/* Main Area */}
       <div className="flex-1 flex flex-col min-w-0">
-        <header className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-md border-b border-gray-200 dark:border-gray-800 px-6 sm:px-10 py-5 flex items-center justify-between sticky top-0 z-40 shadow-sm">
+        <header className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-md border-b border-gray-200 dark:border-gray-800 px-6 sm:px-10 py-5 flex items-center justify-between sticky top-0 z-40 shadow-sm flex-wrap gap-4">
           <div>
             <h1 className="text-2xl font-black tracking-tight">Executive Dashboard</h1>
-            <p className="text-xs text-gray-500 dark:text-gray-400">Real-time telemetry and revenue analytics for SolarVerse operations</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400">Real-time telemetry and RBAC analytics for SolarVerse operations</p>
           </div>
           <div className="flex items-center space-x-4">
+            {/* User Role Selector Dropdown */}
+            <div className="flex items-center space-x-2 bg-gray-100 dark:bg-gray-800 px-3 py-2 rounded-xl border border-gray-200 dark:border-gray-700">
+              <span className="text-xs font-semibold text-gray-500 dark:text-gray-400">Role:</span>
+              <select
+                value={userRole}
+                onChange={(e) => setUserRole(e.target.value as UserRole)}
+                className="bg-transparent text-sm font-bold focus:outline-none text-gray-900 dark:text-white cursor-pointer capitalize"
+              >
+                <option value="management" className="dark:bg-gray-900">Management</option>
+                <option value="system_admin" className="dark:bg-gray-900">System Admin</option>
+                <option value="sales" className="dark:bg-gray-900">Sales</option>
+                <option value="inventory_manager" className="dark:bg-gray-900">Inventory Manager</option>
+                <option value="technician" className="dark:bg-gray-900">Technician</option>
+                <option value="surveyor" className="dark:bg-gray-900">Surveyor</option>
+                <option value="service_manager" className="dark:bg-gray-900">Service Manager</option>
+                <option value="finance" className="dark:bg-gray-900">Finance</option>
+              </select>
+            </div>
+
             <Link
               to="/quote-builder"
               className="px-4 py-2.5 bg-amber-500 hover:bg-amber-600 text-gray-900 font-bold text-sm rounded-xl shadow-md hover:shadow-[0_0_15px_rgba(245,158,11,0.4)] transition"
@@ -123,56 +182,206 @@ export function Dashboard() {
         </header>
 
         <main className="flex-1 p-6 sm:p-10 space-y-8 max-w-7xl w-full mx-auto">
-          {/* KPI Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {/* KPI 1 */}
-            <div className="glass-panel p-6 rounded-3xl space-y-4 hover:-translate-y-1 transition-all">
-              <div className="flex items-center justify-between">
-                <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-amber-500 to-orange-500 flex items-center justify-center text-gray-900 shadow-lg">
-                  <BarChart3 className="w-6 h-6" />
+          {/* RBAC Conditional KPI Cards */}
+          {(userRole === 'management' || userRole === 'system_admin' || userRole === 'service_manager' || userRole === 'finance') && (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 animate-fade-in">
+              {/* KPI 1 */}
+              <div className="glass-panel p-6 rounded-3xl space-y-4 hover:-translate-y-1 transition-all">
+                <div className="flex items-center justify-between">
+                  <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-amber-500 to-orange-500 flex items-center justify-center text-gray-900 shadow-lg">
+                    <BarChart3 className="w-6 h-6" />
+                  </div>
+                  <span className="px-2.5 py-1 rounded-full bg-green-500/10 text-green-600 dark:text-green-400 font-bold text-xs flex items-center gap-0.5">
+                    <ArrowUpRight className="w-3.5 h-3.5" /> +22.4%
+                  </span>
                 </div>
-                <span className="px-2.5 py-1 rounded-full bg-green-500/10 text-green-600 dark:text-green-400 font-bold text-xs flex items-center gap-0.5">
-                  <ArrowUpRight className="w-3.5 h-3.5" /> +22.4%
-                </span>
+                <div>
+                  <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Total Revenue (Last 6 Mos)</p>
+                  <p className="text-3xl font-black mt-1">₹48,50,000</p>
+                </div>
               </div>
-              <div>
-                <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Total Revenue (Last 6 Mos)</p>
-                <p className="text-3xl font-black mt-1">₹48,50,000</p>
-              </div>
-            </div>
 
-            {/* KPI 2 */}
-            <div className="glass-panel p-6 rounded-3xl space-y-4 hover:-translate-y-1 transition-all">
-              <div className="flex items-center justify-between">
-                <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center text-gray-900 shadow-lg">
-                  <Wrench className="w-6 h-6" />
+              {/* KPI 2 */}
+              <div
+                onClick={() => navigate('/dashboard/installation')}
+                className="glass-panel p-6 rounded-3xl space-y-4 cursor-pointer hover:-translate-y-1 transition-all duration-300"
+              >
+                <div className="flex items-center justify-between">
+                  <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center text-gray-900 shadow-lg">
+                    <Wrench className="w-6 h-6" />
+                  </div>
+                  <span className="px-2.5 py-1 rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400 font-bold text-xs">
+                    3 Today
+                  </span>
                 </div>
-                <span className="px-2.5 py-1 rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400 font-bold text-xs">
-                  3 Today
-                </span>
+                <div>
+                  <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Pending Installations</p>
+                  <p className="text-3xl font-black mt-1">14 Sites</p>
+                </div>
               </div>
-              <div>
-                <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Pending Installations</p>
-                <p className="text-3xl font-black mt-1">14 Sites</p>
-              </div>
-            </div>
 
-            {/* KPI 3 */}
-            <div className="glass-panel p-6 rounded-3xl space-y-4 hover:-translate-y-1 transition-all">
-              <div className="flex items-center justify-between">
-                <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-orange-500 to-red-500 flex items-center justify-center text-white shadow-lg">
-                  <Users className="w-6 h-6" />
+              {/* KPI 3 */}
+              <div
+                onClick={() => navigate('/dashboard/tickets')}
+                className="glass-panel p-6 rounded-3xl space-y-4 cursor-pointer hover:-translate-y-1 transition-all duration-300"
+              >
+                <div className="flex items-center justify-between">
+                  <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-orange-500 to-red-500 flex items-center justify-center text-white shadow-lg">
+                    <Users className="w-6 h-6" />
+                  </div>
+                  <span className="px-2.5 py-1 rounded-full bg-orange-500/10 text-orange-600 dark:text-orange-400 font-bold text-xs">
+                    2 Urgent
+                  </span>
                 </div>
-                <span className="px-2.5 py-1 rounded-full bg-orange-500/10 text-orange-600 dark:text-orange-400 font-bold text-xs">
-                  2 Urgent
-                </span>
-              </div>
-              <div>
-                <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Open Tickets & Enquiries</p>
-                <p className="text-3xl font-black mt-1">7 Active</p>
+                <div>
+                  <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Open Tickets & Enquiries</p>
+                  <p className="text-3xl font-black mt-1">7 Active</p>
+                </div>
               </div>
             </div>
-          </div>
+          )}
+
+          {userRole === 'sales' && (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-fade-in">
+              <div className="glass-panel p-6 rounded-3xl space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center text-white shadow-lg">
+                    <Users className="w-6 h-6" />
+                  </div>
+                  <span className="px-2.5 py-1 rounded-full bg-blue-500/10 text-blue-600 dark:text-blue-400 font-bold text-xs">
+                    Sales Pipeline
+                  </span>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Total Enquiries</p>
+                  <p className="text-3xl font-black mt-1">28 Active Leads</p>
+                </div>
+              </div>
+
+              <div className="glass-panel p-6 rounded-3xl space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-amber-500 to-yellow-500 flex items-center justify-center text-gray-900 shadow-lg">
+                    <ShieldCheck className="w-6 h-6" />
+                  </div>
+                  <span className="px-2.5 py-1 rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400 font-bold text-xs">
+                    Awaiting Inspection
+                  </span>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Pending Surveys</p>
+                  <p className="text-3xl font-black mt-1">8 Sites</p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {userRole === 'technician' && (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-fade-in">
+              <div
+                onClick={() => navigate('/dashboard/installation')}
+                className="glass-panel p-6 rounded-3xl space-y-4 cursor-pointer hover:-translate-y-1 transition"
+              >
+                <div className="flex items-center justify-between">
+                  <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center text-white shadow-lg">
+                    <Wrench className="w-6 h-6" />
+                  </div>
+                  <span className="px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-bold text-xs">
+                    Field Ops
+                  </span>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Assigned Installations</p>
+                  <p className="text-3xl font-black mt-1">5 Sites</p>
+                </div>
+              </div>
+
+              <div
+                onClick={() => navigate('/dashboard/tickets')}
+                className="glass-panel p-6 rounded-3xl space-y-4 cursor-pointer hover:-translate-y-1 transition"
+              >
+                <div className="flex items-center justify-between">
+                  <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-rose-500 to-red-600 flex items-center justify-center text-white shadow-lg">
+                    <LifeBuoy className="w-6 h-6" />
+                  </div>
+                  <span className="px-2.5 py-1 rounded-full bg-rose-500/10 text-rose-600 dark:text-rose-400 font-bold text-xs">
+                    Requires Action
+                  </span>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Open Tickets</p>
+                  <p className="text-3xl font-black mt-1">3 Urgent</p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {userRole === 'inventory_manager' && (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-fade-in">
+              <div className="glass-panel p-6 rounded-3xl space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white shadow-lg">
+                    <QrCode className="w-6 h-6" />
+                  </div>
+                  <span className="px-2.5 py-1 rounded-full bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 font-bold text-xs">
+                    Warehouse
+                  </span>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Inverter & Panel Stock</p>
+                  <p className="text-3xl font-black mt-1">1,420 Units</p>
+                </div>
+              </div>
+
+              <div className="glass-panel p-6 rounded-3xl space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-amber-500 to-orange-500 flex items-center justify-center text-gray-900 shadow-lg">
+                    <ShieldCheck className="w-6 h-6" />
+                  </div>
+                  <span className="px-2.5 py-1 rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400 font-bold text-xs">
+                    Restock Needed
+                  </span>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Low Stock Alerts</p>
+                  <p className="text-3xl font-black mt-1">2 Items</p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {userRole === 'surveyor' && (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-fade-in">
+              <div className="glass-panel p-6 rounded-3xl space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-teal-500 to-cyan-600 flex items-center justify-center text-white shadow-lg">
+                    <Sun className="w-6 h-6" />
+                  </div>
+                  <span className="px-2.5 py-1 rounded-full bg-teal-500/10 text-teal-600 dark:text-teal-400 font-bold text-xs">
+                    Site Surveys
+                  </span>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Assigned Surveys</p>
+                  <p className="text-3xl font-black mt-1">6 Scheduled</p>
+                </div>
+              </div>
+
+              <div className="glass-panel p-6 rounded-3xl space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center text-white shadow-lg">
+                    <CheckCircle2 className="w-6 h-6" />
+                  </div>
+                  <span className="px-2.5 py-1 rounded-full bg-green-500/10 text-green-600 dark:text-green-400 font-bold text-xs">
+                    Ready for Approval
+                  </span>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Submitted Reports</p>
+                  <p className="text-3xl font-black mt-1">4 Pending Review</p>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Bar Chart Section */}
           <div className="glass-panel p-6 sm:p-8 rounded-3xl space-y-6">
