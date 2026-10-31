@@ -23,8 +23,8 @@ export function Hero() {
       {/* Content Container */}
       <div className="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center py-20">
         {/* Badge */}
-        <div className="inline-flex items-center space-x-2 px-4 py-2 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-400 mb-8 backdrop-blur-md animate-fade-in-up">
-          <Zap className="w-4 h-4 text-amber-400 animate-pulse" />
+        <div className="inline-flex items-center space-x-2 px-4 py-2 rounded-full bg-brand/10 border border-brand/30 text-brand mb-8 backdrop-blur-md animate-fade-in-up">
+          <Zap className="w-4 h-4 text-brand animate-pulse" />
           <span className="text-xs sm:text-sm font-semibold tracking-wide uppercase">
             Next-Gen Solar Energy Platform
           </span>
@@ -33,7 +33,7 @@ export function Hero() {
         {/* Heading */}
         <h1 className="text-4xl sm:text-6xl lg:text-7xl font-extrabold text-white tracking-tight leading-tight sm:leading-none mb-6 animate-fade-in-up delay-100">
           We Specialize in <br />
-          <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-orange-300">
+          <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand-fresh to-brand-fresh">
             Sustainable Energy Solutions
           </span>
         </h1>
@@ -47,7 +47,7 @@ export function Hero() {
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-6 animate-fade-in-up delay-300">
           <button
             onClick={() => scrollToSection('enquiry-form')}
-            className="w-full sm:w-auto px-8 py-4 bg-amber-500 hover:bg-amber-600 text-gray-900 font-bold rounded-2xl shadow-xl hover:shadow-[0_0_20px_rgba(245,158,11,0.5)] hover:-translate-y-1 transition-all duration-300 flex items-center justify-center space-x-3 text-base group"
+            className="w-full sm:w-auto px-8 py-4 bg-brand hover:bg-brand-strong text-white dark:text-gray-950 font-bold rounded-2xl shadow-xl hover:shadow-[0_0_20px_color-mix(in_srgb,var(--sv-brand)_50%,transparent)] hover:-translate-y-1 transition-all duration-300 flex items-center justify-center space-x-3 text-base group"
           >
             <span>Get Started</span>
             <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />

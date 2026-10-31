@@ -50,7 +50,7 @@ export function SiteSurvey() {
           <Link to="/dashboard" className="p-2 rounded-xl bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition">
             <ArrowLeft className="w-5 h-5 text-gray-700 dark:text-gray-300" />
           </Link>
-          <div className="w-10 h-10 rounded-xl bg-amber-500/10 flex items-center justify-center text-amber-500">
+          <div className="w-10 h-10 rounded-xl bg-brand/10 flex items-center justify-center text-brand">
             <Compass className="w-6 h-6" />
           </div>
           <div>
@@ -70,7 +70,7 @@ export function SiteSurvey() {
       <main className="flex-1 max-w-3xl w-full mx-auto p-6 sm:p-10">
         <div className="glass-panel p-8 sm:p-10 rounded-3xl space-y-8 shadow-2xl border border-gray-200 dark:border-gray-800">
           <div className="flex items-center space-x-4 pb-6 border-b border-gray-200/50 dark:border-gray-800">
-            <div className="w-12 h-12 rounded-2xl bg-amber-500/10 flex items-center justify-center text-amber-500">
+            <div className="w-12 h-12 rounded-2xl bg-brand/10 flex items-center justify-center text-brand">
               <Sun className="w-6 h-6" />
             </div>
             <div>
@@ -80,7 +80,7 @@ export function SiteSurvey() {
           </div>
 
           {isSubmitted && (
-            <div className="p-4 rounded-2xl bg-green-500/15 border border-green-500/30 text-green-600 dark:text-green-400 font-bold flex items-center space-x-3 animate-fade-in">
+            <div className="p-4 rounded-2xl bg-success/15 border border-success/30 text-success dark:text-success font-bold flex items-center space-x-3 animate-fade-in">
               <CheckCircle2 className="w-6 h-6 shrink-0" />
               <span>Survey submitted successfully! Redirecting to order and payment confirmation...</span>
             </div>
@@ -91,7 +91,7 @@ export function SiteSurvey() {
               {/* Roof Area */}
               <div className="space-y-2">
                 <label className="text-sm font-bold flex items-center gap-2 text-gray-700 dark:text-gray-300">
-                  <Maximize2 className="w-4 h-4 text-amber-500" /> Roof Area (sq ft)
+                  <Maximize2 className="w-4 h-4 text-brand" /> Roof Area (sq ft)
                 </label>
                 <input
                   type="number"
@@ -100,20 +100,20 @@ export function SiteSurvey() {
                   placeholder="e.g. 650"
                   value={formData.roof_area}
                   onChange={handleInputChange}
-                  className="w-full px-4 py-3 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 transition"
+                  className="w-full px-4 py-3 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl text-sm focus:outline-none focus:ring-2 focus:ring-focus transition"
                 />
               </div>
 
               {/* Roof Direction */}
               <div className="space-y-2">
                 <label className="text-sm font-bold flex items-center gap-2 text-gray-700 dark:text-gray-300">
-                  <Compass className="w-4 h-4 text-amber-500" /> Roof Direction
+                  <Compass className="w-4 h-4 text-brand" /> Roof Direction
                 </label>
                 <select
                   name="roof_direction"
                   value={formData.roof_direction}
                   onChange={handleInputChange}
-                  className="w-full px-4 py-3 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-amber-500 transition"
+                  className="w-full px-4 py-3 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-focus transition"
                 >
                   <option value="North">North</option>
                   <option value="South">South (Optimal)</option>
@@ -127,7 +127,7 @@ export function SiteSurvey() {
               {/* Roof Tilt */}
               <div className="space-y-2">
                 <label className="text-sm font-bold flex items-center gap-2 text-gray-700 dark:text-gray-300">
-                  <Sun className="w-4 h-4 text-amber-500" /> Roof Tilt (Degrees)
+                  <Sun className="w-4 h-4 text-brand" /> Roof Tilt (Degrees)
                 </label>
                 <input
                   type="number"
@@ -136,14 +136,14 @@ export function SiteSurvey() {
                   placeholder="e.g. 15"
                   value={formData.roof_tilt}
                   onChange={handleInputChange}
-                  className="w-full px-4 py-3 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 transition"
+                  className="w-full px-4 py-3 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl text-sm focus:outline-none focus:ring-2 focus:ring-focus transition"
                 />
               </div>
 
               {/* Cable Distance */}
               <div className="space-y-2">
                 <label className="text-sm font-bold flex items-center gap-2 text-gray-700 dark:text-gray-300">
-                  <Ruler className="w-4 h-4 text-amber-500" /> Cable Distance (Meters)
+                  <Ruler className="w-4 h-4 text-brand" /> Cable Distance (Meters)
                 </label>
                 <input
                   type="number"
@@ -152,20 +152,20 @@ export function SiteSurvey() {
                   placeholder="e.g. 25"
                   value={formData.cable_distance}
                   onChange={handleInputChange}
-                  className="w-full px-4 py-3 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 transition"
+                  className="w-full px-4 py-3 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl text-sm focus:outline-none focus:ring-2 focus:ring-focus transition"
                 />
               </div>
             </div>
 
             {/* Shadow-free Checkbox */}
-            <div className="flex items-center space-x-3 p-4 rounded-2xl bg-amber-500/5 border border-amber-500/20">
+            <div className="flex items-center space-x-3 p-4 rounded-2xl bg-brand/5 border border-brand/20">
               <input
                 type="checkbox"
                 id="shadow_free"
                 name="shadow_free"
                 checked={formData.shadow_free}
                 onChange={handleInputChange}
-                className="w-5 h-5 rounded text-amber-500 focus:ring-amber-500 accent-amber-500 cursor-pointer"
+                className="w-5 h-5 rounded text-brand focus:ring-focus accent-brand cursor-pointer"
               />
               <label htmlFor="shadow_free" className="text-sm font-bold text-gray-800 dark:text-gray-200 cursor-pointer select-none">
                 Shadow-free Roof Area (Verified no surrounding obstructions / trees / high-rises)
@@ -175,9 +175,9 @@ export function SiteSurvey() {
             {/* Roof Photo Upload */}
             <div className="space-y-2">
               <label className="text-sm font-bold flex items-center gap-2 text-gray-700 dark:text-gray-300">
-                <Upload className="w-4 h-4 text-amber-500" /> Roof Photo
+                <Upload className="w-4 h-4 text-brand" /> Roof Photo
               </label>
-              <div className="border-2 border-dashed border-gray-300 dark:border-gray-700 rounded-3xl p-8 text-center hover:border-amber-500 transition cursor-pointer relative group">
+              <div className="border-2 border-dashed border-gray-300 dark:border-gray-700 rounded-3xl p-8 text-center hover:border-brand transition cursor-pointer relative group">
                 <input
                   type="file"
                   accept="image/*"
@@ -185,7 +185,7 @@ export function SiteSurvey() {
                   className="absolute inset-0 opacity-0 cursor-pointer"
                 />
                 <div className="flex flex-col items-center space-y-2">
-                  <div className="w-12 h-12 rounded-2xl bg-amber-500/10 flex items-center justify-center text-amber-500 group-hover:scale-110 transition">
+                  <div className="w-12 h-12 rounded-2xl bg-brand/10 flex items-center justify-center text-brand group-hover:scale-110 transition">
                     <Upload className="w-6 h-6" />
                   </div>
                   <p className="text-sm font-bold text-gray-800 dark:text-gray-200">
@@ -199,7 +199,7 @@ export function SiteSurvey() {
             {/* Submit Button */}
             <button
               type="submit"
-              className="w-full py-4 rounded-2xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-gray-900 font-black text-base shadow-lg hover:shadow-[0_0_20px_rgba(245,158,11,0.4)] transition-all duration-300 flex items-center justify-center gap-2"
+              className="w-full py-4 rounded-2xl bg-gradient-to-r from-brand-strong to-brand hover:from-brand hover:to-brand-strong text-white dark:text-gray-950 font-black text-base shadow-lg hover:shadow-[0_0_20px_color-mix(in_srgb,var(--sv-brand)_40%,transparent)] transition-all duration-300 flex items-center justify-center gap-2"
             >
               <CheckCircle2 className="w-5 h-5" />
               <span>Submit Survey for Approval</span>

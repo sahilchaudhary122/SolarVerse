@@ -36,7 +36,7 @@ export function WhyChooseUs() {
               
               {/* Floating Badge */}
               <div className="absolute bottom-6 left-6 right-6 p-6 bg-white/90 dark:bg-gray-900/90 backdrop-blur-md rounded-2xl border border-white/20 dark:border-gray-800 flex items-center space-x-4">
-                <div className="w-12 h-12 rounded-xl bg-amber-500 flex items-center justify-center text-gray-900 font-bold shrink-0">
+                <div className="w-12 h-12 rounded-xl bg-brand flex items-center justify-center text-white dark:text-gray-950 font-bold shrink-0">
                   <Award className="w-6 h-6" />
                 </div>
                 <div>
@@ -47,12 +47,12 @@ export function WhyChooseUs() {
             </div>
 
             {/* Decorative background glow */}
-            <div className="absolute -top-6 -left-6 w-72 h-72 bg-amber-500/10 rounded-full blur-3xl -z-10" />
+            <div className="absolute -top-6 -left-6 w-72 h-72 bg-brand/10 rounded-full blur-3xl -z-10" />
           </div>
 
           {/* Right Column: Text & Checkmark list */}
           <div>
-            <span className="text-amber-600 dark:text-amber-400 font-semibold text-sm uppercase tracking-wider">
+            <span className="text-brand dark:text-brand font-semibold text-sm uppercase tracking-wider">
               Why Choose SolarVerse
             </span>
             <h2 className="text-3xl sm:text-4xl font-extrabold text-gray-900 dark:text-white mt-2 tracking-tight mb-6">
@@ -66,13 +66,13 @@ export function WhyChooseUs() {
               {points.map((point, index) => (
                 <div 
                   key={index} 
-                  className="flex items-start space-x-4 p-4 rounded-2xl hover:bg-amber-50/50 dark:hover:bg-amber-950/20 transition-all duration-200 group cursor-pointer"
+                  className="flex items-start space-x-4 p-4 rounded-2xl hover:bg-brand-soft/50 dark:hover:bg-brand-soft/20 transition-all duration-200 group cursor-pointer"
                 >
                   <div className="mt-1 shrink-0 group-hover:scale-125 transition-transform duration-200">
-                    <CheckCircle2 className="w-6 h-6 text-amber-600 dark:text-amber-400" />
+                    <CheckCircle2 className="w-6 h-6 text-brand dark:text-brand" />
                   </div>
                   <div>
-                    <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-1 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">
+                    <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-1 group-hover:text-brand dark:group-hover:text-brand transition-colors">
                       {point.title}
                     </h3>
                     <p className="text-gray-600 dark:text-gray-400 text-sm leading-relaxed">

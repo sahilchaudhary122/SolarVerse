@@ -34,12 +34,12 @@ export function ServicesSection() {
   return (
     <section id="services" className="py-24 bg-gray-900 dark:bg-gray-950 transition-colors text-white relative overflow-hidden">
       {/* Background glow */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-amber-500/10 rounded-full blur-[120px] pointer-events-none" />
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-brand/10 rounded-full blur-[120px] pointer-events-none" />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         {/* Section Header */}
         <div className="text-center max-w-3xl mx-auto mb-16">
-          <span className="text-amber-400 font-semibold text-sm uppercase tracking-wider">
+          <span className="text-brand font-semibold text-sm uppercase tracking-wider">
             Our Offerings
           </span>
           <h2 className="text-3xl sm:text-5xl font-extrabold mt-2 tracking-tight">
@@ -56,7 +56,7 @@ export function ServicesSection() {
             <div
               key={index}
               onClick={() => scrollToSection('enquiry-form')}
-              className="glass-panel rounded-3xl overflow-hidden hover:-translate-y-2 hover:shadow-[0_0_30px_rgba(245,158,11,0.2)] transition-all duration-300 flex flex-col justify-between group cursor-pointer"
+              className="glass-panel rounded-3xl overflow-hidden hover:-translate-y-2 hover:shadow-[0_0_30px_color-mix(in_srgb,var(--sv-brand)_20%,transparent)] transition-all duration-300 flex flex-col justify-between group cursor-pointer"
             >
               <div>
                 <div className="relative h-64 overflow-hidden">
@@ -69,7 +69,7 @@ export function ServicesSection() {
                 </div>
 
                 <div className="p-6">
-                  <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2 group-hover:text-amber-500 dark:group-hover:text-amber-400 transition-colors">
+                  <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2 group-hover:text-brand dark:group-hover:text-brand transition-colors">
                     {service.title}
                   </h3>
                   <p className="text-gray-600 dark:text-gray-300 text-sm leading-relaxed mb-4">
@@ -79,10 +79,10 @@ export function ServicesSection() {
               </div>
 
               <div className="px-6 pb-6 pt-0 flex items-center justify-between">
-                <span className="text-xs font-semibold text-amber-600 dark:text-amber-400 uppercase tracking-wider">
+                <span className="text-xs font-semibold text-brand dark:text-brand uppercase tracking-wider">
                   Learn More
                 </span>
-                <div className="w-10 h-10 rounded-xl bg-amber-500/10 flex items-center justify-center text-amber-600 dark:text-amber-400 group-hover:bg-amber-500 group-hover:text-gray-900 transition-all shadow-md">
+                <div className="w-10 h-10 rounded-xl bg-brand/10 flex items-center justify-center text-brand dark:text-brand group-hover:bg-brand group-hover:text-white dark:group-hover:text-gray-950 transition-all shadow-md">
                   <ArrowRight className="w-5 h-5 group-hover:translate-x-0.5 transition-transform" />
                 </div>
               </div>

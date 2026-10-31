@@ -33,7 +33,7 @@ export function ProcessSection() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
         <div className="text-center max-w-3xl mx-auto mb-16">
-          <span className="text-amber-600 dark:text-amber-400 font-semibold text-sm uppercase tracking-wider">
+          <span className="text-brand dark:text-brand font-semibold text-sm uppercase tracking-wider">
             The Way We Work
           </span>
           <h2 className="text-3xl sm:text-4xl font-extrabold text-gray-900 dark:text-white mt-2 tracking-tight">
@@ -56,10 +56,10 @@ export function ProcessSection() {
                 <div>
                   <div className="flex items-center justify-between mb-6">
                     {/* Icon inside a circle */}
-                    <div className="w-16 h-16 rounded-full bg-amber-500/10 flex items-center justify-center text-amber-600 dark:text-amber-400 group-hover:scale-110 transition-transform">
+                    <div className="w-16 h-16 rounded-full bg-brand/10 flex items-center justify-center text-brand dark:text-brand group-hover:scale-110 transition-transform">
                       <Icon className="w-7 h-7" />
                     </div>
-                    <span className="text-2xl font-black text-gray-300 dark:text-gray-800 group-hover:text-amber-500/20 transition-colors">
+                    <span className="text-2xl font-black text-gray-300 dark:text-gray-800 group-hover:text-brand/20 transition-colors">
                       {item.step}
                     </span>
                   </div>

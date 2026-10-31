@@ -43,7 +43,7 @@ export function SerialScanner() {
           <Link to="/dashboard" className="p-2 rounded-xl bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition">
             <ArrowLeft className="w-5 h-5 text-gray-700 dark:text-gray-300" />
           </Link>
-          <div className="w-10 h-10 rounded-xl bg-amber-500/10 flex items-center justify-center text-amber-500">
+          <div className="w-10 h-10 rounded-xl bg-brand/10 flex items-center justify-center text-brand">
             <QrCode className="w-6 h-6" />
           </div>
           <span className="text-xl font-black tracking-tight">Serial Scanner & Barcode Telemetry</span>
@@ -60,7 +60,7 @@ export function SerialScanner() {
       <main className="flex-1 max-w-5xl w-full mx-auto p-6 sm:p-10 space-y-8">
         {/* Scanner Viewport Box */}
         <div className="glass-panel p-8 rounded-3xl text-center space-y-6 relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-64 h-64 bg-amber-500/5 rounded-full blur-3xl pointer-events-none" />
+          <div className="absolute top-0 right-0 w-64 h-64 bg-brand/5 rounded-full blur-3xl pointer-events-none" />
           
           <div className="max-w-md mx-auto space-y-3">
             <h2 className="text-2xl font-black">Barcode & QR Scanner</h2>
@@ -70,15 +70,15 @@ export function SerialScanner() {
           </div>
 
           {/* Camera Viewfinder Box */}
-          <div className="w-full max-w-md h-64 mx-auto rounded-2xl border-2 border-dashed border-amber-500/50 dark:border-amber-500/40 bg-amber-500/5 flex flex-col items-center justify-center relative shadow-inner">
+          <div className="w-full max-w-md h-64 mx-auto rounded-2xl border-2 border-dashed border-brand/50 dark:border-brand/40 bg-brand/5 flex flex-col items-center justify-center relative shadow-inner">
             {isScanning ? (
               <div className="flex flex-col items-center space-y-3 animate-pulse">
-                <RefreshCw className="w-10 h-10 text-amber-500 animate-spin" />
-                <span className="text-sm font-bold text-amber-600 dark:text-amber-400">Scanning barcode...</span>
+                <RefreshCw className="w-10 h-10 text-brand animate-spin" />
+                <span className="text-sm font-bold text-brand dark:text-brand">Scanning barcode...</span>
               </div>
             ) : (
               <div className="flex flex-col items-center space-y-3">
-                <div className="w-16 h-16 rounded-2xl bg-amber-500/10 flex items-center justify-center text-amber-500 shadow">
+                <div className="w-16 h-16 rounded-2xl bg-brand/10 flex items-center justify-center text-brand shadow">
                   <Camera className="w-8 h-8" />
                 </div>
                 <span className="text-sm font-medium text-gray-600 dark:text-gray-300">Camera Viewfinder Active</span>
@@ -87,17 +87,17 @@ export function SerialScanner() {
             )}
             
             {/* Corner Markers */}
-            <div className="absolute top-3 left-3 w-4 h-4 border-t-2 border-l-2 border-amber-500" />
-            <div className="absolute top-3 right-3 w-4 h-4 border-t-2 border-r-2 border-amber-500" />
-            <div className="absolute bottom-3 left-3 w-4 h-4 border-b-2 border-l-2 border-amber-500" />
-            <div className="absolute bottom-3 right-3 w-4 h-4 border-b-2 border-r-2 border-amber-500" />
+            <div className="absolute top-3 left-3 w-4 h-4 border-t-2 border-l-2 border-brand" />
+            <div className="absolute top-3 right-3 w-4 h-4 border-t-2 border-r-2 border-brand" />
+            <div className="absolute bottom-3 left-3 w-4 h-4 border-b-2 border-l-2 border-brand" />
+            <div className="absolute bottom-3 right-3 w-4 h-4 border-b-2 border-r-2 border-brand" />
           </div>
 
           <div className="pt-2">
             <button
               onClick={handleMockScan}
               disabled={isScanning}
-              className="px-8 py-4 bg-amber-500 hover:bg-amber-600 text-gray-900 font-bold rounded-2xl shadow-lg hover:shadow-[0_0_20px_rgba(245,158,11,0.4)] transition-all disabled:opacity-50 text-base flex items-center justify-center gap-2 mx-auto"
+              className="px-8 py-4 bg-brand hover:bg-brand-strong text-white dark:text-gray-950 font-bold rounded-2xl shadow-lg hover:shadow-[0_0_20px_color-mix(in_srgb,var(--sv-brand)_40%,transparent)] transition-all disabled:opacity-50 text-base flex items-center justify-center gap-2 mx-auto"
             >
               <Camera className="w-5 h-5" />
               <span>Start Camera Scan</span>
@@ -109,7 +109,7 @@ export function SerialScanner() {
         <div className="glass-panel p-6 sm:p-8 rounded-3xl space-y-6">
           <div className="flex items-center justify-between pb-4 border-b border-gray-200/50 dark:border-gray-800">
             <h3 className="text-xl font-bold flex items-center gap-2">
-              <CheckCircle2 className="w-5 h-5 text-amber-500" /> Scanned Serials ({scannedItems.length})
+              <CheckCircle2 className="w-5 h-5 text-brand" /> Scanned Serials ({scannedItems.length})
             </h3>
             <span className="text-xs text-gray-500">Logged to current site manifest</span>
           </div>
@@ -125,16 +125,16 @@ export function SerialScanner() {
               {scannedItems.map((item) => (
                 <div
                   key={item.id}
-                  className="flex items-center justify-between p-4 rounded-2xl bg-white/50 dark:bg-gray-800/50 border border-gray-200/50 dark:border-gray-700/50 hover:border-amber-500/50 transition shadow-sm"
+                  className="flex items-center justify-between p-4 rounded-2xl bg-white/50 dark:bg-gray-800/50 border border-gray-200/50 dark:border-gray-700/50 hover:border-brand/50 transition shadow-sm"
                 >
                   <div className="flex items-center space-x-4">
-                    <div className="w-10 h-10 rounded-xl bg-amber-500/10 flex items-center justify-center text-amber-500 font-black">
+                    <div className="w-10 h-10 rounded-xl bg-brand/10 flex items-center justify-center text-brand font-black">
                       {item.serial.substring(0, 3)}
                     </div>
                     <div>
                       <div className="flex items-center space-x-2">
                         <span className="font-bold text-base tracking-wide font-mono">{item.serial}</span>
-                        <span className="px-2 py-0.5 rounded-full bg-green-500/10 text-green-600 dark:text-green-400 text-xs font-bold">
+                        <span className="px-2 py-0.5 rounded-full bg-success/10 text-success dark:text-success text-xs font-bold">
                           Verified
                         </span>
                       </div>

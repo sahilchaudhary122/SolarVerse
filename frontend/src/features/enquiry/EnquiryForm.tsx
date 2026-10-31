@@ -3,18 +3,19 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { useMutation } from '@tanstack/react-query'
-import { ShieldCheck, Clock, Zap, CheckCircle2, Send } from 'lucide-react'
+import { ArrowRight, CheckCircle2, Sun } from 'lucide-react'
+import { Button, Card, Input, Select } from '../../components/ui'
 import { submitEnquiry } from '../../lib/api'
 import type { Enquiry, EnquiryResponse } from '../../lib/api'
 
 const enquirySchema = z.object({
-  customer_name: z.string().min(2, 'Customer name must be at least 2 characters'),
-  phone: z.string().min(7, 'Please enter a valid phone number'),
-  address: z.string().min(5, 'Please enter a valid address'),
+  customer_name: z.string().min(2, 'Name must be at least 2 characters'),
+  phone: z.string().min(7, 'Enter a phone number with at least 7 characters'),
+  address: z.string().min(5, 'Address must be at least 5 characters'),
   city: z.string().min(2, 'City must be at least 2 characters'),
-  state: z.string().min(2, 'State must be at least 2 characters'),
+  state: z.string().min(2, 'State or region must be at least 2 characters'),
   postal_code: z.string().min(3, 'Postal code must be at least 3 characters'),
-  capacity_kw: z.number().positive('Capacity must be a positive number'),
+  capacity_kw: z.number().positive('Enter a positive capacity'),
   system_type: z.enum(['on-grid', 'off-grid']),
 })
 
@@ -22,269 +23,55 @@ type EnquiryFormData = z.infer<typeof enquirySchema>
 
 export function EnquiryForm() {
   const [successMessage, setSuccessMessage] = useState<string | null>(null)
-
-  const {
-    register,
-    handleSubmit,
-    reset,
-    formState: { errors },
-  } = useForm<EnquiryFormData>({
+  const { register, handleSubmit, reset, formState: { errors } } = useForm<EnquiryFormData>({
     resolver: zodResolver(enquirySchema),
-    defaultValues: {
-      customer_name: '',
-      phone: '',
-      address: '',
-      city: '',
-      state: '',
-      postal_code: '',
-      capacity_kw: 5,
-      system_type: 'on-grid',
-    },
+    defaultValues: { customer_name: '', phone: '', address: '', city: '', state: '', postal_code: '', capacity_kw: 5, system_type: 'on-grid' },
   })
 
   const mutation = useMutation<EnquiryResponse, Error, Enquiry>({
-    mutationFn: async (formData: Enquiry) => {
-      return submitEnquiry(formData)
-    },
-    onSuccess: (data) => {
-      setSuccessMessage(data.message)
-      reset()
-    },
+    mutationFn: submitEnquiry,
+    onSuccess: (data) => { setSuccessMessage(data.message); reset() },
   })
 
   const onSubmit = (data: EnquiryFormData) => {
     setSuccessMessage(null)
+    mutation.reset()
     mutation.mutate(data)
   }
 
-  return (
-    <div id="enquiry-form">
-      <section className="py-24 bg-gray-50 dark:bg-gray-950 transition-colors">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-center">
-            {/* Left Column: Get a Free Quote Today & Benefits */}
-            <div className="lg:col-span-5 space-y-6">
-              <span className="text-amber-600 dark:text-amber-400 font-semibold text-sm uppercase tracking-wider">
-                Lead Capture
-              </span>
-              <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-gray-900 dark:text-white tracking-tight leading-tight">
-                Get a Free Quote Today
-              </h2>
-              <p className="text-gray-600 dark:text-gray-400 text-base sm:text-lg leading-relaxed">
-                SolarVerse connects your custom enquiries, site surveys, and installations seamlessly in one app. Request your free consultation and savings estimate.
-              </p>
-
-              <div className="space-y-4 pt-2">
-                <div className="flex items-center space-x-3 text-gray-700 dark:text-gray-300">
-                  <CheckCircle2 className="w-5 h-5 text-amber-600 dark:text-amber-400 shrink-0" />
-                  <span className="text-sm font-medium">Custom savings report based on your utility bill</span>
-                </div>
-                <div className="flex items-center space-x-3 text-gray-700 dark:text-gray-300">
-                  <CheckCircle2 className="w-5 h-5 text-amber-600 dark:text-amber-400 shrink-0" />
-                  <span className="text-sm font-medium">Expert consultation with zero sales pressure</span>
-                </div>
-                <div className="flex items-center space-x-3 text-gray-700 dark:text-gray-300">
-                  <CheckCircle2 className="w-5 h-5 text-amber-600 dark:text-amber-400 shrink-0" />
-                  <span className="text-sm font-medium">Instant quote breakdown for $0-down financing</span>
-                </div>
-              </div>
-
-              <div className="pt-6 border-t border-gray-200 dark:border-gray-800 grid grid-cols-2 gap-4">
-                <div className="flex items-center space-x-3">
-                  <ShieldCheck className="w-8 h-8 text-amber-600 dark:text-amber-400 shrink-0" />
-                  <div>
-                    <p className="text-sm font-bold text-gray-900 dark:text-white">Secure Data</p>
-                    <p className="text-xs text-gray-500">100% Confidential</p>
-                  </div>
-                </div>
-                <div className="flex items-center space-x-3">
-                  <Clock className="w-8 h-8 text-amber-600 dark:text-amber-400 shrink-0" />
-                  <div>
-                    <p className="text-sm font-bold text-gray-900 dark:text-white">Fast Response</p>
-                    <p className="text-xs text-gray-500">Within 24 Hours</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Right Column: Actual Enquiry Form */}
-            <div className="lg:col-span-7">
-              <div className="bg-white dark:bg-gray-900 p-8 sm:p-10 rounded-3xl shadow-xl border border-gray-200 dark:border-gray-800 transition-colors">
-                <div className="mb-6">
-                  <h3 className="text-2xl font-bold tracking-tight text-gray-900 dark:text-white flex items-center gap-2">
-                    <Zap className="w-6 h-6 text-amber-600 dark:text-amber-400" />
-                    Request Your Solar Quote
-                  </h3>
-                  <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                    Provide your project details below to connect with our solar experts.
-                  </p>
-                </div>
-
-                {successMessage && (
-                  <div className="mb-6 p-4 bg-amber-50 dark:bg-amber-950/50 border border-amber-200 dark:border-amber-800 rounded-2xl text-amber-700 dark:text-amber-300 text-sm flex items-center justify-between">
-                    <span>{successMessage}</span>
-                    <button
-                      type="button"
-                      onClick={() => setSuccessMessage(null)}
-                      className="text-amber-700 dark:text-amber-300 font-bold hover:opacity-75 ml-2 text-lg"
-                    >
-                      ×
-                    </button>
-                  </div>
-                )}
-
-                {mutation.isError && (
-                  <div className="mb-6 p-4 bg-rose-50 dark:bg-rose-950/50 border border-rose-200 dark:border-rose-800 rounded-2xl text-rose-700 dark:text-rose-300 text-sm">
-                    {mutation.error.message || 'An error occurred during submission.'}
-                  </div>
-                )}
-
-                <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">
-                      Full Name
-                    </label>
-                    <input
-                      type="text"
-                      placeholder="John Doe"
-                      {...register('customer_name')}
-                      className="w-full px-4 py-3 rounded-xl bg-gray-50 dark:bg-gray-950 border border-gray-300 dark:border-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-amber-500 focus:outline-none transition-colors"
-                    />
-                    {errors.customer_name && (
-                      <p className="text-rose-500 text-xs mt-1">{errors.customer_name.message}</p>
-                    )}
-                  </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                    <div>
-                      <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">
-                        Phone Number
-                      </label>
-                      <input
-                        type="text"
-                        placeholder="+1 (555) 000-0000"
-                        {...register('phone')}
-                        className="w-full px-4 py-3 rounded-xl bg-gray-50 dark:bg-gray-950 border border-gray-300 dark:border-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-amber-500 focus:outline-none transition-colors"
-                      />
-                      {errors.phone && (
-                        <p className="text-rose-500 text-xs mt-1">{errors.phone.message}</p>
-                      )}
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">
-                        System Capacity (kW)
-                      </label>
-                      <input
-                        type="number"
-                        step="0.5"
-                        {...register('capacity_kw', { valueAsNumber: true })}
-                        className="w-full px-4 py-3 rounded-xl bg-gray-50 dark:bg-gray-950 border border-gray-300 dark:border-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-amber-500 focus:outline-none transition-colors"
-                      />
-                      {errors.capacity_kw && (
-                        <p className="text-rose-500 text-xs mt-1">{errors.capacity_kw.message}</p>
-                      )}
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">
-                      Street Address
-                    </label>
-                    <input
-                      type="text"
-                      placeholder="123 Solar Street"
-                      {...register('address')}
-                      className="w-full px-4 py-3 rounded-xl bg-gray-50 dark:bg-gray-950 border border-gray-300 dark:border-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-amber-500 focus:outline-none transition-colors"
-                    />
-                    {errors.address && (
-                      <p className="text-rose-500 text-xs mt-1">{errors.address.message}</p>
-                    )}
-                  </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
-                    <div>
-                      <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">
-                        City
-                      </label>
-                      <input
-                        type="text"
-                        placeholder="Sunnyville"
-                        {...register('city')}
-                        className="w-full px-4 py-3 rounded-xl bg-gray-50 dark:bg-gray-950 border border-gray-300 dark:border-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-amber-500 focus:outline-none transition-colors"
-                      />
-                      {errors.city && (
-                        <p className="text-rose-500 text-xs mt-1">{errors.city.message}</p>
-                      )}
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">
-                        State
-                      </label>
-                      <input
-                        type="text"
-                        placeholder="CA"
-                        {...register('state')}
-                        className="w-full px-4 py-3 rounded-xl bg-gray-50 dark:bg-gray-950 border border-gray-300 dark:border-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-amber-500 focus:outline-none transition-colors"
-                      />
-                      {errors.state && (
-                        <p className="text-rose-500 text-xs mt-1">{errors.state.message}</p>
-                      )}
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">
-                        Postal Code
-                      </label>
-                      <input
-                        type="text"
-                        placeholder="90210"
-                        {...register('postal_code')}
-                        className="w-full px-4 py-3 rounded-xl bg-gray-50 dark:bg-gray-950 border border-gray-300 dark:border-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-amber-500 focus:outline-none transition-colors"
-                      />
-                      {errors.postal_code && (
-                        <p className="text-rose-500 text-xs mt-1">{errors.postal_code.message}</p>
-                      )}
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">
-                      System Type
-                    </label>
-                    <select
-                      {...register('system_type')}
-                      className="w-full px-4 py-3 rounded-xl bg-gray-50 dark:bg-gray-950 border border-gray-300 dark:border-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-amber-500 focus:outline-none transition-colors"
-                    >
-                      <option value="on-grid">On-Grid (Grid-Tied)</option>
-                      <option value="off-grid">Off-Grid (Standalone with Battery)</option>
-                    </select>
-                    {errors.system_type && (
-                      <p className="text-rose-500 text-xs mt-1">{errors.system_type.message}</p>
-                    )}
-                  </div>
-
-                  <button
-                    type="submit"
-                    disabled={mutation.isPending}
-                    className="w-full py-4 bg-amber-500 hover:bg-amber-600 text-gray-900 font-bold rounded-xl shadow-lg hover:-translate-y-1 hover:shadow-lg hover:shadow-amber-500/30 transition-all duration-300 flex items-center justify-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    {mutation.isPending ? (
-                      <span>Submitting Enquiry...</span>
-                    ) : (
-                      <>
-                        <Send className="w-5 h-5" />
-                        <span>Submit Free Quote Request</span>
-                      </>
-                    )}
-                  </button>
-                </form>
-              </div>
-            </div>
-          </div>
+  return <div id="enquiry-form" className="bg-app-bg px-4 py-14 sm:px-6 sm:py-20 lg:px-8">
+    <div className="mx-auto grid max-w-7xl items-start gap-8 lg:grid-cols-[.8fr_1.2fr] lg:gap-14">
+      <div className="lg:sticky lg:top-28">
+        <p className="mb-2 text-xs font-bold uppercase tracking-[.18em] text-accent">Start a conversation</p>
+        <h2 className="text-3xl font-bold tracking-tight text-app-text sm:text-4xl">Tell us a little about your solar plans.</h2>
+        <p className="mt-4 leading-relaxed text-muted">Share your contact and site details with the local demo form. These fields follow the currently supported lead-capture workflow.</p>
+        <div className="mt-6 rounded-lg border border-border bg-surface-raised p-4 text-sm leading-relaxed text-muted">
+          <p className="font-semibold text-app-text">Demo submission</p>
+          <p className="mt-1">This form currently runs a local mock workflow. It does not send your information to a server or create a real enquiry.</p>
         </div>
-      </section>
+        <div className="mt-6 flex items-start gap-3 text-sm text-muted"><Sun aria-hidden="true" className="mt-0.5 size-5 shrink-0 text-brand" /><p>System requirements and capacity can be discussed after reviewing the property and project needs.</p></div>
+      </div>
+
+      <Card className="p-5 sm:p-8">
+        <div className="mb-6"><h3 className="text-xl font-semibold tracking-tight text-app-text">Enquiry details</h3><p className="mt-1 text-sm text-muted">Complete the fields below to preview the demo submission.</p></div>
+
+        {successMessage && <div role="status" className="mb-5 flex items-start gap-3 rounded-md border border-success/30 bg-success/10 p-4 text-sm text-app-text"><CheckCircle2 aria-hidden="true" className="mt-0.5 size-5 shrink-0 text-success" /><p>{successMessage}</p></div>}
+        {mutation.isError && <div role="alert" className="mb-5 rounded-md border border-danger/30 bg-danger/5 p-4 text-sm text-danger">{mutation.error.message || 'The demo submission could not be completed. Please try again.'}</div>}
+
+        <form noValidate onSubmit={handleSubmit(onSubmit)} className="grid gap-5 sm:grid-cols-2">
+          <Input label="Full name" autoComplete="name" error={errors.customer_name?.message} {...register('customer_name')} />
+          <Input label="Phone number" type="tel" autoComplete="tel" error={errors.phone?.message} {...register('phone')} />
+          <Input label="Street address" autoComplete="street-address" className="sm:col-span-2" error={errors.address?.message} {...register('address')} />
+          <Input label="City" autoComplete="address-level2" error={errors.city?.message} {...register('city')} />
+          <Input label="State or region" autoComplete="address-level1" error={errors.state?.message} {...register('state')} />
+          <Input label="Postal code" autoComplete="postal-code" error={errors.postal_code?.message} {...register('postal_code')} />
+          <Input label="Estimated system capacity (kW)" type="number" min="0.1" step="0.1" hint="An initial estimate is fine." error={errors.capacity_kw?.message} {...register('capacity_kw', { valueAsNumber: true })} />
+          <Select label="System type" className="sm:col-span-2" error={errors.system_type?.message} {...register('system_type')}>
+            <option value="on-grid">On-grid</option><option value="off-grid">Off-grid</option>
+          </Select>
+          <Button type="submit" loading={mutation.isPending} className="w-full sm:col-span-2">{mutation.isPending ? 'Processing demo…' : 'Submit demo enquiry'} <ArrowRight aria-hidden="true" className="size-4" /></Button>
+        </form>
+      </Card>
     </div>
-  )
+  </div>
 }
