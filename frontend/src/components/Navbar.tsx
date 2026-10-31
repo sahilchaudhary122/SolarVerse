@@ -76,7 +76,7 @@ export function Navbar() {
             {isDarkMode ? <Sun className="w-5 h-5 text-amber-400" /> : <Moon className="w-5 h-5 text-gray-700" />}
           </button>
           <Link
-            to="/dashboard"
+            to="/login"
             className="px-4 py-2.5 border border-amber-500 text-amber-600 dark:text-amber-400 hover:bg-amber-500 hover:text-gray-900 font-semibold text-sm rounded-xl transition-all duration-300 shadow-sm"
           >
             Login to App
@@ -145,7 +145,7 @@ export function Navbar() {
           </button>
           <div className="pt-2 space-y-2">
             <Link
-              to="/dashboard"
+              to="/login"
               onClick={() => setMobileMenuOpen(false)}
               className="block w-full py-3 border border-amber-500 text-amber-600 dark:text-amber-400 font-semibold rounded-xl text-center hover:bg-amber-500 hover:text-gray-900 transition-all duration-300"
             >

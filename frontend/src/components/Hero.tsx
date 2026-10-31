@@ -1,4 +1,4 @@
-import { ArrowRight, Play, Zap } from 'lucide-react'
+import { ArrowRight, Zap } from 'lucide-react'
 
 export function Hero() {
   const scrollToSection = (id: string) => {
@@ -53,15 +53,7 @@ export function Hero() {
             <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
           </button>
           
-          <button
-            onClick={() => scrollToSection('services')}
-            className="w-full sm:w-auto px-8 py-4 bg-white/10 hover:bg-white/20 text-white font-semibold rounded-2xl border border-white/20 backdrop-blur-md hover:shadow-[0_0_20px_rgba(245,158,11,0.3)] hover:-translate-y-1 transition-all duration-300 text-base flex items-center justify-center space-x-3"
-          >
-            <div className="w-7 h-7 rounded-full bg-white/20 flex items-center justify-center">
-              <Play className="w-3.5 h-3.5 fill-current text-white" />
-            </div>
-            <span>Watch Video</span>
-          </button>
+         
         </div>
       </div>
     </div>

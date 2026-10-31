@@ -14,6 +14,11 @@ import { SerialScanner } from './pages/SerialScanner'
 import { InstallationForm } from './pages/InstallationForm'
 import { WarrantyLookup } from './pages/WarrantyLookup'
 import { SupportTickets } from './pages/SupportTickets'
+import { EnquiriesList } from './pages/EnquiriesList'
+import { SiteSurvey } from './pages/SiteSurvey'
+import { OrderConfirm } from './pages/OrderConfirm'
+import { Login } from './pages/Login'
+import { ProtectedRoute } from './components/ProtectedRoute'
 import { Sun } from 'lucide-react'
 
 const queryClient = new QueryClient()
@@ -49,7 +54,7 @@ function Footer() {
           <a href="#services" className="hover:text-amber-400 transition">Services</a>
           <a href="#projects" className="hover:text-amber-400 transition">Projects</a>
           <Link to="/quote-builder" className="hover:text-amber-400 transition">Quote Builder</Link>
-          <Link to="/dashboard" className="hover:text-amber-400 transition">Dashboard</Link>
+          <Link to="/login" className="hover:text-amber-400 transition">Login</Link>
         </div>
       </div>
     </footer>
@@ -64,11 +69,19 @@ export function App() {
           <Routes>
             <Route path="/" element={<><Navbar /><LandingPage /><Footer /></>} />
             <Route path="/quote-builder" element={<QuoteBuilder />} />
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/dashboard/scanner" element={<SerialScanner />} />
-            <Route path="/dashboard/installation" element={<InstallationForm />} />
-            <Route path="/dashboard/warranty" element={<WarrantyLookup />} />
-            <Route path="/dashboard/tickets" element={<SupportTickets />} />
+            <Route path="/login" element={<Login />} />
+            
+            {/* Protected Dashboard Routes */}
+            <Route element={<ProtectedRoute />}>
+              <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/dashboard/enquiries" element={<EnquiriesList />} />
+              <Route path="/dashboard/survey" element={<SiteSurvey />} />
+              <Route path="/dashboard/orders" element={<OrderConfirm />} />
+              <Route path="/dashboard/scanner" element={<SerialScanner />} />
+              <Route path="/dashboard/installation" element={<InstallationForm />} />
+              <Route path="/dashboard/warranty" element={<WarrantyLookup />} />
+              <Route path="/dashboard/tickets" element={<SupportTickets />} />
+            </Route>
           </Routes>
         </div>
       </BrowserRouter>

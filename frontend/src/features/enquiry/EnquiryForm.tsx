@@ -4,22 +4,21 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { useMutation } from '@tanstack/react-query'
 import { ShieldCheck, Clock, Zap, CheckCircle2, Send } from 'lucide-react'
+import { submitEnquiry } from '../../lib/api'
+import type { Enquiry, EnquiryResponse } from '../../lib/api'
 
 const enquirySchema = z.object({
   customer_name: z.string().min(2, 'Customer name must be at least 2 characters'),
   phone: z.string().min(7, 'Please enter a valid phone number'),
   address: z.string().min(5, 'Please enter a valid address'),
+  city: z.string().min(2, 'City must be at least 2 characters'),
+  state: z.string().min(2, 'State must be at least 2 characters'),
+  postal_code: z.string().min(3, 'Postal code must be at least 3 characters'),
   capacity_kw: z.number().positive('Capacity must be a positive number'),
   system_type: z.enum(['on-grid', 'off-grid']),
 })
 
 type EnquiryFormData = z.infer<typeof enquirySchema>
-
-interface EnquiryResponse {
-  success: boolean;
-  message: string;
-  data: EnquiryFormData;
-}
 
 export function EnquiryForm() {
   const [successMessage, setSuccessMessage] = useState<string | null>(null)
@@ -35,26 +34,17 @@ export function EnquiryForm() {
       customer_name: '',
       phone: '',
       address: '',
+      city: '',
+      state: '',
+      postal_code: '',
       capacity_kw: 5,
       system_type: 'on-grid',
     },
   })
 
-  const mutation = useMutation<EnquiryResponse, Error, EnquiryFormData>({
-    mutationFn: async (formData: EnquiryFormData) => {
-      return new Promise<EnquiryResponse>((resolve, reject) => {
-        setTimeout(() => {
-          if (Math.random() < 0.03) {
-            reject(new Error('Failed to submit enquiry. Please try again.'))
-          } else {
-            resolve({
-              success: true,
-              message: 'Enquiry submitted successfully! Our solar expert will contact you within 24 hours.',
-              data: formData,
-            })
-          }
-        }, 1200)
-      })
+  const mutation = useMutation<EnquiryResponse, Error, Enquiry>({
+    mutationFn: async (formData: Enquiry) => {
+      return submitEnquiry(formData)
     },
     onSuccess: (data) => {
       setSuccessMessage(data.message)
@@ -199,17 +189,64 @@ export function EnquiryForm() {
 
                   <div>
                     <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">
-                      Installation Address
+                      Street Address
                     </label>
                     <input
                       type="text"
-                      placeholder="123 Solar Street, Sunnyville, CA"
+                      placeholder="123 Solar Street"
                       {...register('address')}
                       className="w-full px-4 py-3 rounded-xl bg-gray-50 dark:bg-gray-950 border border-gray-300 dark:border-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-amber-500 focus:outline-none transition-colors"
                     />
                     {errors.address && (
                       <p className="text-rose-500 text-xs mt-1">{errors.address.message}</p>
                     )}
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">
+                        City
+                      </label>
+                      <input
+                        type="text"
+                        placeholder="Sunnyville"
+                        {...register('city')}
+                        className="w-full px-4 py-3 rounded-xl bg-gray-50 dark:bg-gray-950 border border-gray-300 dark:border-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-amber-500 focus:outline-none transition-colors"
+                      />
+                      {errors.city && (
+                        <p className="text-rose-500 text-xs mt-1">{errors.city.message}</p>
+                      )}
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">
+                        State
+                      </label>
+                      <input
+                        type="text"
+                        placeholder="CA"
+                        {...register('state')}
+                        className="w-full px-4 py-3 rounded-xl bg-gray-50 dark:bg-gray-950 border border-gray-300 dark:border-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-amber-500 focus:outline-none transition-colors"
+                      />
+                      {errors.state && (
+                        <p className="text-rose-500 text-xs mt-1">{errors.state.message}</p>
+                      )}
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">
+                        Postal Code
+                      </label>
+                      <input
+                        type="text"
+                        placeholder="90210"
+                        {...register('postal_code')}
+                        className="w-full px-4 py-3 rounded-xl bg-gray-50 dark:bg-gray-950 border border-gray-300 dark:border-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-amber-500 focus:outline-none transition-colors"
+                      />
+                      {errors.postal_code && (
+                        <p className="text-rose-500 text-xs mt-1">{errors.postal_code.message}</p>
+                      )}
+                    </div>
                   </div>
 
                   <div>
