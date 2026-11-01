@@ -1,9 +1,7 @@
-
 # SolarVerse ER Diagram — Database Design Version 1.2
 
-**PROPOSED – PENDING TEAM APPROVAL**
-
-Versions 1.0 and 1.1 are preserved in Git history at `f2b449c` and `307a14e`. This diagram represents the proposed PostgreSQL schema in `02-database-schema.md`; it is not a finalized business contract. Optional tables may be out of hackathon scope.
+**PROPOSED – FINAL REVIEW VERSION – PENDING TEAM APPROVAL**
+Versions 1.0 and 1.1 are identified in historical documentation as `f2b449c` and `307a14e`; Git history is unavailable in this workspace to verify those commits. This diagram represents the v1.2 canonical PostgreSQL schema implemented by Alembic revision 006; it remains a proposed, unapproved business contract. It describes exactly 35 canonical tables, also listed in `05-canonical-table-registry.md`. Sixteen prior tables remain in `solarverse_legacy` for preservation and compatibility.
 
 ## Mermaid ER diagram
 
@@ -81,7 +79,6 @@ erDiagram
         varchar email
         timestamptz created_at
     }
-
     SITE {
         uuid id PK
         uuid customer_id FK
@@ -93,7 +90,6 @@ erDiagram
         char country_code
         timestamptz created_at
     }
-
     ENQUIRY {
         uuid id PK
         uuid customer_id FK
@@ -106,7 +102,6 @@ erDiagram
         varchar status
         timestamptz created_at
     }
-
     CUSTOMER_INTERACTION {
         uuid id PK
         uuid enquiry_id FK
@@ -115,7 +110,6 @@ erDiagram
         timestamptz occurred_at
         timestamptz created_at
     }
-
     ENQUIRY_STATUS_HISTORY {
         uuid id PK
         uuid enquiry_id FK
@@ -124,7 +118,6 @@ erDiagram
         timestamptz changed_at
         text reason
     }
-
     SITE_SURVEY {
         uuid id PK
         uuid enquiry_id FK
@@ -144,7 +137,6 @@ erDiagram
         timestamptz approved_at
         timestamptz created_at
     }
-
     SITE_SURVEY_REVIEW {
         uuid id PK
         uuid survey_id FK
@@ -155,7 +147,6 @@ erDiagram
         text rejection_reason
         text notes
     }
-
     APP_USER {
         uuid id PK
         varchar display_name
@@ -166,7 +157,6 @@ erDiagram
         timestamptz created_at
         timestamptz updated_at
     }
-
     SOLAR_PACKAGE {
         uuid id PK
         varchar name
@@ -175,7 +165,6 @@ erDiagram
         boolean active
         timestamptz created_at
     }
-
     PRODUCT {
         uuid id PK
         varchar name
@@ -184,13 +173,11 @@ erDiagram
         boolean active
         timestamptz created_at
     }
-
     PACKAGE_COMPONENT {
         uuid package_id PK, FK
         uuid product_id PK, FK
         numeric quantity
     }
-
     QUOTATION {
         uuid id PK
         uuid enquiry_id FK
@@ -206,7 +193,6 @@ erDiagram
         numeric tax_amount
         numeric total_amount
     }
-
     QUOTATION_LINE {
         uuid id PK
         uuid quotation_id FK
@@ -218,7 +204,6 @@ erDiagram
         numeric tax_amount
         numeric line_total
     }
-
     SALES_ORDER {
         uuid id PK
         uuid quotation_id FK
@@ -231,7 +216,6 @@ erDiagram
         numeric tax_amount
         numeric total_amount
     }
-
     ORDER_LINE {
         uuid id PK
         uuid order_id FK
@@ -244,21 +228,18 @@ erDiagram
         numeric tax_amount
         numeric line_total
     }
-
     INVENTORY_LOCATION {
         uuid id PK
         varchar name
         boolean active
         timestamptz created_at
     }
-
     INVENTORY_BALANCE {
         uuid location_id PK, FK
         uuid product_id PK, FK
         numeric quantity_on_hand
         timestamptz updated_at
     }
-
     STOCK_MOVEMENT {
         uuid id PK
         uuid location_id FK
@@ -269,7 +250,6 @@ erDiagram
         timestamptz occurred_at
         text notes
     }
-
     STOCK_RESERVATION {
         uuid id PK
         uuid location_id FK
@@ -282,7 +262,6 @@ erDiagram
         timestamptz created_at
         timestamptz released_at
     }
-
     DISPATCH {
         uuid id PK
         uuid order_id FK
@@ -293,7 +272,6 @@ erDiagram
         text notes
         timestamptz created_at
     }
-
     DISPATCH_ITEM {
         uuid id PK
         uuid dispatch_id FK
@@ -302,7 +280,6 @@ erDiagram
         uuid product_id FK
         numeric quantity
     }
-
     EQUIPMENT_UNIT {
         uuid id PK
         uuid product_id FK
@@ -310,7 +287,6 @@ erDiagram
         varchar serial_number
         timestamptz created_at
     }
-
     EQUIPMENT_EVENT {
         uuid id PK
         uuid equipment_unit_id FK
@@ -320,7 +296,6 @@ erDiagram
         timestamptz occurred_at
         text notes
     }
-
     INSTALLATION {
         uuid id PK
         uuid order_id FK
@@ -332,7 +307,6 @@ erDiagram
         timestamptz customer_signed_off_at
         timestamptz created_at
     }
-
     TECHNICIAN {
         uuid id PK
         varchar name
@@ -340,13 +314,11 @@ erDiagram
         boolean active
         timestamptz created_at
     }
-
     INSTALLATION_TECHNICIAN {
         uuid installation_id PK, FK
         uuid technician_id PK, FK
         timestamptz assigned_at
     }
-
     INSTALLATION_CHECKLIST_ITEM {
         uuid id PK
         uuid installation_id FK
@@ -356,7 +328,6 @@ erDiagram
         timestamptz completed_at
         text notes
     }
-
     WARRANTY {
         uuid id PK
         uuid equipment_unit_id FK
@@ -364,7 +335,6 @@ erDiagram
         date ends_on
         text terms
     }
-
     SERVICE_TICKET {
         uuid id PK
         uuid customer_id FK
@@ -374,13 +344,11 @@ erDiagram
         timestamptz opened_at
         timestamptz closed_at
     }
-
     SERVICE_TICKET_TECHNICIAN {
         uuid ticket_id PK, FK
         uuid technician_id PK, FK
         timestamptz assigned_at
     }
-
     SERVICE_ACTIVITY {
         uuid id PK
         uuid ticket_id FK
@@ -390,14 +358,12 @@ erDiagram
         timestamptz occurred_at
         text notes
     }
-
     SERVICE_PART {
         uuid id PK
         uuid ticket_id FK
         uuid product_id FK
         numeric quantity
     }
-
     FILE_ASSET {
         uuid id PK
         uuid site_survey_id FK
@@ -411,7 +377,6 @@ erDiagram
         char checksum_sha256
         timestamptz uploaded_at
     }
-
     PAYMENT {
         uuid id PK
         uuid order_id FK
@@ -422,7 +387,6 @@ erDiagram
         varchar external_reference
         timestamptz created_at
     }
-
     PAYMENT_REFUND {
         uuid id PK
         uuid payment_id FK
@@ -439,6 +403,7 @@ erDiagram
 
 - `ENQUIRY` keeps the eight existing statuses: `new`, `contacted`, `survey_pending`, `qualified`, `quoted`, `converted`, `lost`, `cancelled`.
 - `SITE` has `UNIQUE(customer_id, id)`; `ENQUIRY(customer_id, site_id)` references it in that order. `ENQUIRY(id, site_id)` is unique so `SITE_SURVEY(enquiry_id, site_id)` can reference the matching enquiry/site pair.
+- Every `SITE_SURVEY` requires exactly one existing `ENQUIRY` and references the same `site_id` through the composite FK `(enquiry_id, site_id) -> enquiry(id, site_id)`. Standalone surveys are not allowed.
 - `CUSTOMER_INTERACTION.interaction_type` is limited to `call`, `email`, `visit`, `note`, `whatsapp`, or `sms`.
 - `SITE_SURVEY.status` is limited to `draft`, `submitted`, `approved`, or `rejected`. `is_current` can be true only when approved, and a partial unique index permits at most one current approved survey per enquiry. Earlier approved surveys remain as records with `is_current = false`.
 - `SITE_SURVEY_REVIEW.reviewer_id` references `APP_USER` with `ON DELETE RESTRICT`; `reviewer_label` snapshots the reviewer's display name. Each approval/rejection is retained in its own review row.

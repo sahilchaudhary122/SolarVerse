@@ -11,7 +11,10 @@ from app.models import Customer, Enquiry, Site
 
 
 def test_enquiry_site_must_be_owned_by_enquiry_customer() -> None:
-    engine = create_engine("sqlite:///:memory:")
+    engine = create_engine(
+        "sqlite:///:memory:",
+        execution_options={"schema_translate_map": {"solarverse_legacy": None}},
+    )
 
     @event.listens_for(engine, "connect")
     def enable_sqlite_foreign_keys(dbapi_connection: object, connection_record: object) -> None:

@@ -1,9 +1,7 @@
-
 # Constraints and Business Rules — Database Design Version 1.2
 
-**PROPOSED – PENDING TEAM APPROVAL**
-
-Versions 1.0 and 1.1 are preserved in Git history at `f2b449c` and `307a14e`. This file records the 14 backend review areas and identifies which behavior is represented by PostgreSQL constraints, which needs transactional backend logic, and which remains unresolved. No new team approval is implied by this proposal.
+**PROPOSED – FINAL REVIEW VERSION – PENDING TEAM APPROVAL**
+Versions 1.0 and 1.1 are identified in historical documentation as `f2b449c` and `307a14e`; Git history is unavailable here to verify those commits. This file records the 14 backend review areas and identifies which behavior is represented by PostgreSQL constraints, which needs transactional backend logic, and which remains unresolved across the 35 implemented canonical tables. See `05-canonical-table-registry.md` for the table registry. PostgreSQL 16 constraint and schema checks passed on the isolated migration test database; this does not constitute team approval or production readiness.
 
 ## Status of decisions
 
@@ -33,7 +31,7 @@ Use FastAPI/Pydantic and frontend validation for request shape, required fields,
 
 The proposed `quotation` and `quotation_line` tables preserve the quoted currency, amounts, descriptions, quantities, and unit prices for each revision. `sales_order` and `order_line` copy the accepted commercial values as an order snapshot, with an optional `source_quotation_line_id` for traceability. Catalog edits must not silently change historical quotes or orders.
 
-The DDL includes subtotal, discount, tax, and total amount fields, plus line-level snapshots. Amounts use `numeric`, not floating point. Formula consistency, rounding, currency, tax applicability, discount model, and whether totals are stored or computed require team approval. Until confirmed, backend transactions must calculate and persist a consistent snapshot and validate header/line reconciliation.
+The DDL includes subtotal, discount, tax, and total amount fields, plus line-level snapshots. Amounts use `numeric`, not floating point. Formula consistency, rounding, currency, tax applicability, discount model, and whether totals are stored or computed require team approval. Current API request contracts accept caller-supplied Decimal snapshots and enforce field precision/range; they do not reconcile header totals against lines or derive line totals. No calculation formula is approved in the proposal, so implementing one would invent commercial policy. This is an explicit implementation/approval blocker: do not use the current API as an authoritative priced quote until the team approves the formula and the API enforces it.
 
 Initial and survey-confirmed electricity bill values also carry a nullable ISO currency code paired with the amount. The supported currency/default for the frontend contract remains unresolved.
 
@@ -137,13 +135,15 @@ Validate file size/type and authorization in the API. Object deletion requires a
 - Validate values at React/Zod and FastAPI/Pydantic boundaries; database constraints remain the final integrity guard for local row rules.
 - Do not use phone as identity; preserve the v1.0 E.164 normalization behavior and no-unique-phone decision.
 - `app_user.email_normalized` is unique and must be trimmed/lowercase before storage; the DDL check rejects blank/non-normalized values. Use Argon2 password hashing via `pwdlib` as specified in the root README. `role` values and authorization policy require team/backend agreement. Set `is_active = false` instead of hard deleting users; review FKs restrict deletion. `display_name` is snapshotted into each review.
-- Repository checkout inspected for v1.2 contains no React/FastAPI source contracts. Exact JSON casing/aliases, error responses, and frontend nullability cannot be verified from current files and must be checked with Member 3 before implementation.
+- The current repository contains React/FastAPI source, but its request/response contracts do not yet implement all v1.2 entities. Verify API field casing/aliases, errors, nullability, and the data-preserving mappings in `docs/DATABASE_RECONCILIATION.md` with the implementation owner before migrations.
 - Dependency versions, `updated_at` ownership, country default, currency support, app-user role values, and API field aliases need confirmation. UUID generation is specified application-side with `uuid.uuid4()`.
 
 ## 14. Documentation consistency and Version 1.0 preservation
 
-- Version 1.2 is **PROPOSED – PENDING TEAM APPROVAL** across all five database documents.
-- Version 1.0 is preserved in Git history at commit `f2b449c`; no unrelated files or application code are part of this design update.
+- Version 1.2 is **PROPOSED – FINAL REVIEW VERSION – PENDING TEAM APPROVAL** across the five database design documents and canonical registry.
+- Canonical names in this proposal are `app_user`, `sales_order`, and `service_ticket`. Existing implementation names are compatibility concerns, not alternative names in the v1.2 schema.
+- `site_survey.enquiry_id` is `NOT NULL`; every survey must reference an existing enquiry and that enquiry's site using `(enquiry_id, site_id) -> enquiry(id, site_id)`. Standalone site surveys are prohibited.
+- Prior documentation identifies Version 1.0 at commit `f2b449c`; Git history is unavailable in the current workspace to verify it. This documentation freeze changes no application code or migrations.
 - `02-database-schema.md` is the exact DDL/type/nullability/constraint/index reference. `03-data-dictionary.md` explains those same fields. `01-er-diagram.md` must show every table and relationship. This file explains rules/approval decisions. `README.md` is the index/status page.
 - Any accepted schema change must be applied consistently across diagram, DDL, dictionary, rules, and index, then reviewed against API contracts.
 
@@ -156,3 +156,18 @@ Use `RESTRICT` by default as shown in DDL. Archive/deactivate business records i
 ## Remaining approval decisions
 
 Confirm the open decisions listed in `02-database-schema.md`, especially commercial amount formulas, discount/tax/currency policy, whether custom/non-catalog products are allowed in orders, partial delivery, warranty start date, reservation concurrency and location rules, checklist templates/gates, status vocabularies and transitions, refund handling, review identity, product/serial details, file policy, and actual React/FastAPI contracts. No pending point is silently treated as an approved business requirement.
+
+### Survey non-null migration preflight
+
+The existing implementation's `site_survey.enquiry_id` is nullable and does not prove that every existing survey references its own site's enquiry. Before making it `NOT NULL` and validating the composite FK, inspect existing rows without changing them:
+
+```sql
+SELECT id, site_id FROM site_survey WHERE enquiry_id IS NULL;
+
+SELECT ss.id, ss.enquiry_id, ss.site_id, e.site_id AS enquiry_site_id
+FROM site_survey AS ss
+LEFT JOIN enquiry AS e ON e.id = ss.enquiry_id
+WHERE e.id IS NULL OR e.site_id <> ss.site_id;
+```
+
+Any returned rows block the constraint migration. Resolve each row with an approved, auditable customer/business decision; do not delete rows or infer an enquiry automatically. A safe migration sequence is: inventory and back up affected rows; obtain an explicit mapping for every null/mismatched survey; apply reviewed updates in a separate data migration or maintenance procedure; verify both queries return zero rows; then add/validate the composite FK and set `enquiry_id NOT NULL`. Production execution requires a separate approval and rollback plan.

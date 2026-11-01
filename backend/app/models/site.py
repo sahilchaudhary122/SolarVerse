@@ -36,7 +36,7 @@ class Site(Base):
             name="uq_site_customer_id_id",
         ),
         Index("ix_site_customer_id", "customer_id"),
-    )
+        {"schema": "solarverse_legacy"})
 
     id: Mapped[UUID] = mapped_column(
         PostgreSQLUUID(as_uuid=True),
@@ -45,7 +45,7 @@ class Site(Base):
     )
     customer_id: Mapped[UUID] = mapped_column(
         PostgreSQLUUID(as_uuid=True),
-        ForeignKey("customer.id", ondelete="RESTRICT"),
+        ForeignKey("solarverse_legacy.customer.id", ondelete="RESTRICT"),
         nullable=False,
     )
     label: Mapped[str | None] = mapped_column(String(120), nullable=True)

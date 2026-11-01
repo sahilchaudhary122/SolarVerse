@@ -1,76 +1,37 @@
 import { useState } from 'react'
+import { useQuery } from '@tanstack/react-query'
 import { Link, useNavigate } from 'react-router-dom'
 import { ArrowLeft, Users, Phone, Sun, ArrowUpRight, Search, MapPin } from 'lucide-react'
 import type { EnquiryStatus } from '../types'
+import apiClient, { apiErrorMessage } from '../lib/apiClient'
 
 interface Enquiry {
   id: string
   customer_name: string
   phone: string
-  capacity_kw: number
+  capacity_kw: number | null
   status: EnquiryStatus
   location: string
-  created_at: string
+  created_at: string | null
+  city?: string | null
+  state?: string | null
 }
-
-const mockEnquiries: Enquiry[] = [
-  {
-    id: 'ENQ-2026-001',
-    customer_name: 'Rajesh Sharma',
-    phone: '+91 98765 43210',
-    capacity_kw: 5.5,
-    status: 'new',
-    location: 'Mumbai, MH',
-    created_at: '2026-10-28',
-  },
-  {
-    id: 'ENQ-2026-002',
-    customer_name: 'Priya Patel',
-    phone: '+91 91234 56789',
-    capacity_kw: 3.0,
-    status: 'contacted',
-    location: 'Ahmedabad, GJ',
-    created_at: '2026-10-29',
-  },
-  {
-    id: 'ENQ-2026-003',
-    customer_name: 'Amitabh Verma',
-    phone: '+91 99887 76655',
-    capacity_kw: 10.0,
-    status: 'survey_pending',
-    location: 'Delhi, DL',
-    created_at: '2026-10-30',
-  },
-  {
-    id: 'ENQ-2026-004',
-    customer_name: 'Sneha Reddy',
-    phone: '+91 97443 22110',
-    capacity_kw: 7.2,
-    status: 'converted',
-    location: 'Hyderabad, TS',
-    created_at: '2026-10-25',
-  },
-  {
-    id: 'ENQ-2026-005',
-    customer_name: 'Vikram Iyer',
-    phone: '+91 94421 88990',
-    capacity_kw: 4.5,
-    status: 'quoted',
-    location: 'Bengaluru, KA',
-    created_at: '2026-10-27',
-  },
-]
 
 export function EnquiriesList() {
   const navigate = useNavigate()
   const [searchTerm, setSearchTerm] = useState('')
   const [statusFilter, setStatusFilter] = useState<string>('all')
+  const enquiriesQuery = useQuery({
+    queryKey: ['enquiries'],
+    queryFn: async () => (await apiClient.get<Enquiry[]>('/enquiries')).data,
+  })
 
-  const filteredEnquiries = mockEnquiries.filter((enq) => {
+  const enquiries = enquiriesQuery.data ?? []
+  const filteredEnquiries = enquiries.filter((enq) => {
     const matchesSearch = 
       enq.customer_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       enq.phone.includes(searchTerm) ||
-      enq.location.toLowerCase().includes(searchTerm.toLowerCase())
+      `${enq.city ?? ''} ${enq.state ?? ''}`.toLowerCase().includes(searchTerm.toLowerCase())
     const matchesStatus = statusFilter === 'all' || enq.status === statusFilter
     return matchesSearch && matchesStatus
   })
@@ -156,6 +117,9 @@ export function EnquiriesList() {
           </div>
         </div>
 
+        {enquiriesQuery.isLoading && <p role="status" className="rounded-xl border border-border bg-surface p-5 text-sm text-muted">Loading enquiries…</p>}
+        {enquiriesQuery.isError && <p role="alert" className="rounded-xl border border-danger/30 bg-danger/5 p-5 text-sm text-danger">{apiErrorMessage(enquiriesQuery.error)}</p>}
+
         {/* Data Table */}
         <div className="glass-panel rounded-3xl overflow-hidden border border-gray-200 dark:border-gray-800 shadow-xl">
           <div className="overflow-x-auto">
@@ -196,12 +160,12 @@ export function EnquiriesList() {
                       </td>
                       <td className="px-6 py-4 font-extrabold text-brand dark:text-brand">
                         <span className="flex items-center gap-1">
-                          <Sun className="w-4 h-4" /> {enq.capacity_kw} kW
+                          <Sun className="w-4 h-4" /> {enq.capacity_kw === null ? 'Not specified' : `${enq.capacity_kw} kW`}
                         </span>
                       </td>
-                      <td className="px-6 py-4 text-gray-600 dark:text-gray-300">
+                  <td className="px-6 py-4 text-gray-600 dark:text-gray-300">
                         <span className="flex items-center gap-1 text-xs">
-                          <MapPin className="w-3.5 h-3.5 text-gray-400" /> {enq.location}
+                      <MapPin className="w-3.5 h-3.5 text-gray-400" /> {[enq.city, enq.state].filter(Boolean).join(', ') || '—'}
                         </span>
                       </td>
                       <td className="px-6 py-4">

@@ -15,6 +15,8 @@ class SupportTicket(Base):
 
     __tablename__ = "support_ticket"
 
+    __table_args__ = {"schema": "solarverse_legacy"}
+
     id: Mapped[UUID] = mapped_column(
         PostgreSQLUUID(as_uuid=True),
         primary_key=True,
@@ -22,7 +24,7 @@ class SupportTicket(Base):
     )
     customer_id: Mapped[UUID] = mapped_column(
         PostgreSQLUUID(as_uuid=True),
-        ForeignKey("customer.id", ondelete="RESTRICT"),
+        ForeignKey("solarverse_legacy.customer.id", ondelete="RESTRICT"),
         nullable=False,
     )
     subject: Mapped[str] = mapped_column(String(160), nullable=False)

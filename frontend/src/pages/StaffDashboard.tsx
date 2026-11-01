@@ -1,58 +1,45 @@
 import { Link } from 'react-router-dom'
-import { ArrowRight, ClipboardList, Compass, FileText, Plus, Users } from 'lucide-react'
-import { Badge, Card, EmptyState, PageHeader } from '../components/ui'
-import type { StaffRole } from '../auth/authService'
-import { useStaffRole } from '../layouts/PortalLayout'
+import { useQuery } from '@tanstack/react-query'
+import { ArrowRight, ClipboardList, Compass, type LucideIcon } from 'lucide-react'
+import { Badge, Card, EmptyState, ErrorState, LoadingState, PageHeader } from '../components/ui'
+import { useStaffRole } from '../auth/staffRoleContext'
+import { getDashboardMetrics, getSurveys } from '../lib/api'
+import { apiErrorMessage } from '../lib/apiClient'
 
-type AssignedWorkItem = { id: string; title: string; category: string; scheduleLabel?: string }
+const dashboardModules = [
+  ['customers', 'Customers'], ['sites', 'Sites'], ['enquiries', 'Enquiries'], ['surveys', 'Surveys'],
+  ['quotations', 'Quotations'], ['orders', 'Sales orders'], ['inventory_locations', 'Inventory locations'],
+  ['stock_movements', 'Stock movements'], ['dispatches', 'Dispatches'], ['equipment_units', 'Equipment units'],
+  ['installations', 'Installations'], ['warranties', 'Warranties'], ['service_tickets', 'Service tickets'], ['payments', 'Payment records'],
+] as const
 
-const roleWorkAreas: Record<StaffRole, Array<{ label: string; icon: typeof ClipboardList }>> = {
-  system_admin: [{ label: 'Staff administration', icon: Users }, { label: 'Role overview', icon: ClipboardList }],
-  sales: [{ label: 'Assigned enquiries', icon: ClipboardList }, { label: 'Customer follow-ups', icon: Users }, { label: 'Quotations', icon: FileText }],
-  surveyor: [{ label: 'Assigned site surveys', icon: Compass }, { label: 'Survey schedule', icon: ClipboardList }, { label: 'Checklists', icon: FileText }],
-  sales_manager: [{ label: 'Sales team', icon: Users }, { label: 'Enquiry and quotation review', icon: FileText }],
-  inventory_manager: [{ label: 'Stock and reservations', icon: ClipboardList }, { label: 'Dispatch tasks', icon: FileText }],
-  technician: [{ label: 'Assigned installations', icon: Compass }, { label: 'Work orders and schedules', icon: ClipboardList }, { label: 'Checklists', icon: FileText }],
-  service_manager: [{ label: 'Service tickets', icon: ClipboardList }, { label: 'Technician assignments', icon: Users }],
-  finance: [{ label: 'Payments', icon: FileText }, { label: 'Refunds and financial tasks', icon: ClipboardList }],
-  management: [{ label: 'Business overview', icon: Users }, { label: 'Reports', icon: FileText }],
+function surveyorDashboard() {
+  return <SurveyorSummary />
 }
 
-// This view model is intentionally empty until the backend can scope work to the authenticated employee.
-const assignedWorkPreview: AssignedWorkItem[] = []
+function SurveyorSummary() {
+  const query = useQuery({ queryKey: ['surveys'], queryFn: () => getSurveys() })
+  return <>
+    <PageHeader eyebrow="Staff workspace" title="Survey overview" description="Survey totals from the canonical survey API." actions={<Link to="/staff/surveys" className="inline-flex min-h-10 items-center gap-2 rounded-md bg-brand px-4 py-2 text-sm font-semibold text-white dark:text-gray-950">Open surveys <Compass aria-hidden="true" className="size-4" /></Link>} />
+    {query.isLoading ? <LoadingState /> : query.isError ? <ErrorState description={apiErrorMessage(query.error)} onRetry={() => void query.refetch()} /> : <div className="grid gap-4 sm:grid-cols-3">{['draft', 'approved', 'rejected'].map((status) => <Card key={status} className="p-5"><p className="text-sm capitalize text-muted">{status} surveys</p><p className="mt-2 text-3xl font-bold">{query.data?.filter((survey) => survey.status === status).length ?? 0}</p></Card>)}</div>}
+    <div className="mt-5"><EmptyState title="Employee schedule is not available" description="The API has no surveyor assignment or employee-specific schedule endpoint. This page shows only the surveys available to your authorized role." /></div>
+  </>
+}
 
 export function StaffDashboard() {
   const { role, roleLabel, shortcuts } = useStaffRole()
-  const workAreas = roleWorkAreas[role]
+  if (role === 'surveyor') return surveyorDashboard()
+  return <OperationsSummary roleLabel={roleLabel} shortcuts={shortcuts} />
+}
 
-  return <div>
-    <PageHeader
-      eyebrow="Staff workspace"
-      title="Operations overview"
-      description="Your role-aware workspace for the work assigned to your account. Assigned work will appear after employee identity and assignment integration is confirmed."
-      actions={<Link to="/staff/enquiries" className="inline-flex min-h-10 items-center justify-center gap-2 rounded-md bg-brand px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-brand-strong focus-visible:outline-offset-2 dark:text-gray-950"><Plus aria-hidden="true" className="size-4" />Open enquiries</Link>}
-    />
-
-    <div role="note" className="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-md border border-warning/30 bg-warning/5 px-4 py-3 text-sm text-app-text">
-      <span><strong>Demo workspace.</strong> No employee tasks are loaded. This dashboard is designed to display only work assigned to the authenticated employee, not the company-wide task queue.</span>
-      <Badge tone="warning">Assignment integration pending</Badge>
-    </div>
-
-    <section className="grid gap-6 xl:grid-cols-[1.2fr_.8fr]">
-      <Card className="p-5 sm:p-6">
-        <div className="mb-4 flex flex-wrap items-start justify-between gap-3"><div><h2 className="text-lg font-semibold">Your assigned work</h2><p className="mt-1 text-sm text-muted">Work queue for the signed-in employee</p></div><Badge tone="info">{roleLabel}</Badge></div>
-        {assignedWorkPreview.length > 0 ? <ul className="divide-y divide-border">{assignedWorkPreview.map((item) => <li key={item.id} className="py-4"><p className="font-medium text-app-text">{item.title}</p><p className="mt-1 text-sm text-muted">{item.category}{item.scheduleLabel ? ` · ${item.scheduleLabel}` : ''}</p></li>)}</ul> : <EmptyState title="No assigned work loaded" description="The future data adapter must return only records assigned to the authenticated employee. Employee identity and assignment ownership are not defined in the current frontend auth contract." />}
-      </Card>
-
-      <Card className="p-5 sm:p-6">
-        <div className="mb-4 flex flex-wrap items-start justify-between gap-3"><div><h2 className="text-lg font-semibold">Role workspace</h2><p className="mt-1 text-sm text-muted">Intended work areas for {roleLabel}</p></div><Badge tone="info">Proposed</Badge></div>
-        <ul className="mb-5 grid gap-2 sm:grid-cols-2 xl:grid-cols-1">{workAreas.map(({ label, icon: Icon }) => <li key={label} className="flex items-center gap-3 rounded-md border border-border bg-surface px-3 py-2.5 text-sm text-app-text"><Icon aria-hidden="true" className="size-4 shrink-0 text-brand" />{label}</li>)}</ul>
-        <h3 className="mb-2 text-sm font-semibold">Module shortcuts</h3>
-        {shortcuts.length > 0 ? <ul className="grid gap-3 sm:grid-cols-2">{shortcuts.map(({ to, label, icon: Icon }) => <li key={to}><Link to={to} className="flex min-h-14 items-center justify-between gap-3 rounded-md border border-border bg-surface px-4 py-3 text-sm font-medium text-app-text transition-colors hover:border-brand/40 hover:bg-surface-raised focus-visible:outline-offset-2"><span className="flex items-center gap-3"><Icon aria-hidden="true" className="size-4 text-brand" />{label}</span><ArrowRight aria-hidden="true" className="size-4 text-muted" /></Link></li>)}</ul> : <EmptyState title="No shortcuts available" description="Choose a role preview to show suggested workspace links." />}
-      </Card>
-
-    </section>
-
-    <p className="mt-6 text-xs text-muted">Role-specific areas are presentation guidance. Backend authorization and employee-scoped assignment queries must be implemented and verified server-side.</p>
-  </div>
+function OperationsSummary({ roleLabel, shortcuts }: { roleLabel: string; shortcuts: Array<{ to: string; label: string; icon: LucideIcon }> }) {
+  const query = useQuery({ queryKey: ['dashboard'], queryFn: getDashboardMetrics })
+  return <>
+    <PageHeader eyebrow="Staff workspace" title="Operations overview" description="Live canonical counts returned by the authenticated backend." />
+    {query.isLoading ? <LoadingState label="Loading operations data…" /> : query.isError ? <ErrorState description={apiErrorMessage(query.error)} onRetry={() => void query.refetch()} /> : <>
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">{dashboardModules.map(([key, label]) => <Card key={key} className="p-5"><p className="text-sm text-muted">{label}</p><p className="mt-2 text-3xl font-bold tabular-nums">{query.data?.[key]}</p></Card>)}</div>
+      <Card className="mt-4 p-5"><p className="text-sm text-muted">Recorded payments sum (not settlement-confirmed revenue)</p><p className="mt-2 text-2xl font-bold">{query.data?.payment_amount_recorded}</p></Card>
+    </>}
+    <section className="mt-6 grid gap-5 xl:grid-cols-[1.2fr_.8fr]"><Card className="p-5"><div className="flex items-center gap-2"><ClipboardList aria-hidden="true" className="size-5 text-brand" /><h2 className="font-semibold">Assigned work</h2></div><div className="mt-4"><EmptyState title="Employee-specific queue is unavailable" description="Current canonical assignment records are not linked to app_user. No employee-level work is inferred from company-wide totals." /></div></Card><Card className="p-5"><div className="mb-3 flex items-center justify-between gap-3"><h2 className="font-semibold">Shortcuts for {roleLabel}</h2><Badge tone="info">API backed</Badge></div><ul className="space-y-2">{shortcuts.map(({ to, label, icon: Icon }) => <li key={to}><Link to={to} className="flex min-h-11 items-center justify-between gap-3 rounded-md border border-border px-3 py-2 text-sm hover:bg-surface-raised"><span className="flex items-center gap-2"><Icon aria-hidden="true" className="size-4 text-brand" />{label}</span><ArrowRight aria-hidden="true" className="size-4" /></Link></li>)}</ul></Card></section>
+  </>
 }

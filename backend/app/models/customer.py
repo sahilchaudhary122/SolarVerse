@@ -20,6 +20,8 @@ class Customer(Base):
 
     __tablename__ = "customer"
 
+    __table_args__ = {"schema": "solarverse_legacy"}
+
     id: Mapped[UUID] = mapped_column(
         PostgreSQLUUID(as_uuid=True),
         primary_key=True,

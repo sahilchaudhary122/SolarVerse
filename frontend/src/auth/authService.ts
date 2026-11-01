@@ -1,3 +1,5 @@
+import apiClient, { setAccessToken } from '../lib/apiClient'
+
 export const STAFF_ROLES = [
   'system_admin',
   'sales',
@@ -23,10 +25,11 @@ export interface LoginCredentials {
 /** Internal frontend adapter contract. Backend request and response formats are intentionally unspecified. */
 export interface AuthAdapter {
   signIn(credentials: LoginCredentials): Promise<AuthPrincipal>
+  register?(input: { full_name: string; email: string; mobile: string; password: string }): Promise<AuthPrincipal>
+  currentPrincipal?(): Promise<AuthPrincipal>
 }
 
 export type AuthErrorCode =
-  | 'integration_pending'
   | 'invalid_credentials'
   | 'inactive_account'
   | 'missing_role'
@@ -44,12 +47,13 @@ export class AuthServiceError extends Error {
   }
 }
 
-/** Maps a canonical role supplied by a future API adapter to the frontend's internal identity. */
+/** Maps the canonical role returned by the FastAPI authentication routes. */
 export function principalFromRole(role: unknown): AuthPrincipal {
   if (typeof role !== 'string' || role.trim() === '') {
     throw new AuthServiceError('missing_role')
   }
-  const normalizedRole = role.trim().toLowerCase()
+  const value = role.trim().toLowerCase()
+  const normalizedRole = value
   if (normalizedRole === 'customer') return { kind: 'customer', role: 'customer' }
   if ((STAFF_ROLES as readonly string[]).includes(normalizedRole)) {
     return { kind: 'staff', role: normalizedRole as StaffRole }
@@ -57,11 +61,36 @@ export function principalFromRole(role: unknown): AuthPrincipal {
   throw new AuthServiceError('unsupported_role')
 }
 
-/** No API endpoint or server response contract has been supplied, so sign-in stays unavailable. */
-export const pendingAuthAdapter: AuthAdapter = {
-  async signIn() {
-    throw new AuthServiceError('integration_pending')
+export const apiAuthAdapter: AuthAdapter = {
+  async signIn(credentials) {
+    try {
+      const response = await apiClient.post<{ access_token: string; role: string }>('/auth/login', credentials)
+      setAccessToken(response.data.access_token)
+      return principalFromRole(response.data.role)
+    } catch (error) {
+      setAccessToken(null)
+      if (typeof error === 'object' && error !== null && 'response' in error) {
+        const status = (error as { response?: { status?: number } }).response?.status
+        if (status === 401) throw new AuthServiceError('invalid_credentials')
+        if (status === 403) throw new AuthServiceError('inactive_account')
+        throw new AuthServiceError('api_error')
+      }
+      throw new AuthServiceError('network_error')
+    }
   },
+  async currentPrincipal() {
+    const response = await apiClient.get<{ role: string }>('/auth/me')
+    return principalFromRole(response.data.role)
+  },
+  async register(input) {
+    return registerCustomer(input)
+  },
+}
+
+export async function registerCustomer(input: { full_name: string; email: string; mobile: string; password: string }): Promise<AuthPrincipal> {
+  const response = await apiClient.post<{ access_token: string; role: string }>('/auth/register', input)
+  setAccessToken(response.data.access_token)
+  return principalFromRole(response.data.role)
 }
 
 export function getAuthErrorMessage(error: unknown): string {
@@ -70,8 +99,6 @@ export function getAuthErrorMessage(error: unknown): string {
   }
 
   switch (error.code) {
-    case 'integration_pending':
-      return 'Sign-in is not connected yet. No credentials were sent; the FastAPI authentication contract is still pending.'
     case 'invalid_credentials':
       return 'The email or password was not accepted. Check your details and try again.'
     case 'inactive_account':

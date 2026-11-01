@@ -12,7 +12,7 @@ function canAccess(principal: AuthPrincipal, audience: Audience) {
 
 export function RequireSession({ audience, loginPath = '/login' }: { audience: Audience; loginPath?: string }) {
   // This improves frontend navigation only; protected data and actions still require backend authorization.
-  const { principal } = useAuth()
+  const { principal, ready } = useAuth()
   const location = useLocation()
 
   // Visual-only admin preview for local development. Vite replaces DEV with false in production builds.
@@ -22,6 +22,7 @@ export function RequireSession({ audience, loginPath = '/login' }: { audience: A
     && new URLSearchParams(location.search).get('preview') === '1'
 
   if (developmentPreview) return <Outlet />
+  if (!ready) return <div className="grid min-h-48 place-items-center text-sm text-muted">Restoring session…</div>
 
   if (!principal) return <Navigate to={loginPath} replace />
   if (!canAccess(principal, audience)) return <Navigate to={dashboardForPrincipal(principal)} replace />

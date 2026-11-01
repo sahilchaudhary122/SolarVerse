@@ -9,25 +9,47 @@ import { AuthLayout } from './layouts/AuthLayout'
 import { PortalLayout } from './layouts/PortalLayout'
 import { AdminLayout } from './layouts/AdminLayout'
 import { PublicLayout } from './layouts/PublicLayout'
-import { FoundationPage } from './pages/FoundationPages'
-import { AboutPage, EnquiryPage, HomePage, PackagesPage, ProjectsPage, ServicesPage } from './pages/PublicPages'
-import { StaffDashboard } from './pages/StaffDashboard'
-
-// Legacy demo routes remain available while the new portal foundation is built.
-import { Dashboard } from './pages/Dashboard'
-import { QuoteBuilder } from './pages/QuoteBuilder'
-import { SerialScanner } from './pages/SerialScanner'
-import { InstallationForm } from './pages/InstallationForm'
-import { WarrantyLookup } from './pages/WarrantyLookup'
-import { SupportTickets } from './pages/SupportTickets'
-import { EnquiriesList } from './pages/EnquiriesList'
-import { SiteSurvey } from './pages/SiteSurvey'
-import { OrderConfirm } from './pages/OrderConfirm'
-import { Login } from './pages/Login'
-import { ProtectedRoute } from './components/ProtectedRoute'
-import { RegistrationPage } from './pages/RegistrationPage'
-import { AdminCustomersPage, AdminOverviewPage, AdminRolesPage, AdminSettingsPage, AdminStaffPage } from './pages/AdminPages'
-import { AdminLogin } from './pages/AdminLogin'
+const Foundation = lazy(() => import('./pages/FoundationPages').then((m) => ({ default: m.FoundationPage })))
+const HomePage = lazy(() => import('./pages/PublicPages').then((m) => ({ default: m.HomePage })))
+const AboutPage = lazy(() => import('./pages/PublicPages').then((m) => ({ default: m.AboutPage })))
+const EnquiryPage = lazy(() => import('./pages/PublicPages').then((m) => ({ default: m.EnquiryPage })))
+const PackagesPage = lazy(() => import('./pages/PublicPages').then((m) => ({ default: m.PackagesPage })))
+const ProjectsPage = lazy(() => import('./pages/PublicPages').then((m) => ({ default: m.ProjectsPage })))
+const ServicesPage = lazy(() => import('./pages/PublicPages').then((m) => ({ default: m.ServicesPage })))
+const StaffDashboard = lazy(() => import('./pages/StaffDashboard').then((m) => ({ default: m.StaffDashboard })))
+const ApiDashboardPage = lazy(() => import('./pages/StaffCorePages').then((m) => ({ default: m.ApiDashboardPage })))
+const CustomerManagementPage = lazy(() => import('./pages/StaffCorePages').then((m) => ({ default: m.CustomerManagementPage })))
+const EnquiryManagementPage = lazy(() => import('./pages/StaffCorePages').then((m) => ({ default: m.EnquiryManagementPage })))
+const SiteManagementPage = lazy(() => import('./pages/StaffCorePages').then((m) => ({ default: m.SiteManagementPage })))
+const SurveyManagementPage = lazy(() => import('./pages/StaffCorePages').then((m) => ({ default: m.SurveyManagementPage })))
+const CatalogManagementPage = lazy(() => import('./pages/SalesWorkflowPages').then((m) => ({ default: m.CatalogManagementPage })))
+const OrderManagementPage = lazy(() => import('./pages/SalesWorkflowPages').then((m) => ({ default: m.OrderManagementPage })))
+const QuotationManagementPage = lazy(() => import('./pages/SalesWorkflowPages').then((m) => ({ default: m.QuotationManagementPage })))
+const DispatchManagementPage = lazy(() => import('./pages/OperationsWorkflowPages').then((m) => ({ default: m.DispatchManagementPage })))
+const EquipmentManagementPage = lazy(() => import('./pages/OperationsWorkflowPages').then((m) => ({ default: m.EquipmentManagementPage })))
+const InstallationManagementPage = lazy(() => import('./pages/OperationsWorkflowPages').then((m) => ({ default: m.InstallationManagementPage })))
+const InventoryManagementPage = lazy(() => import('./pages/OperationsWorkflowPages').then((m) => ({ default: m.InventoryManagementPage })))
+const PaymentLedgerPage = lazy(() => import('./pages/OperationsWorkflowPages').then((m) => ({ default: m.PaymentLedgerPage })))
+const ServiceTicketManagementPage = lazy(() => import('./pages/OperationsWorkflowPages').then((m) => ({ default: m.ServiceTicketManagementPage })))
+const WarrantyManagementPage = lazy(() => import('./pages/OperationsWorkflowPages').then((m) => ({ default: m.WarrantyManagementPage })))
+const CustomerEnquiriesPage = lazy(() => import('./pages/CustomerWorkflowPages').then((m) => ({ default: m.CustomerEnquiriesPage })))
+const CustomerOverviewPage = lazy(() => import('./pages/CustomerWorkflowPages').then((m) => ({ default: m.CustomerOverviewPage })))
+const CustomerProfilePage = lazy(() => import('./pages/CustomerWorkflowPages').then((m) => ({ default: m.CustomerProfilePage })))
+const CustomerServicePage = lazy(() => import('./pages/CustomerWorkflowPages').then((m) => ({ default: m.CustomerServicePage })))
+const CustomerSitesPage = lazy(() => import('./pages/CustomerWorkflowPages').then((m) => ({ default: m.CustomerSitesPage })))
+const Login = lazy(() => import('./pages/Login').then((m) => ({ default: m.Login })))
+const RegistrationPage = lazy(() => import('./pages/RegistrationPage').then((m) => ({ default: m.RegistrationPage })))
+const AdminRolesPage = lazy(() => import('./pages/AdminPages').then((m) => ({ default: m.AdminRolesPage })))
+const AdminSettingsPage = lazy(() => import('./pages/AdminPages').then((m) => ({ default: m.AdminSettingsPage })))
+const AdminStaffPage = lazy(() => import('./pages/AdminPages').then((m) => ({ default: m.AdminStaffPage })))
+const AdminLogin = lazy(() => import('./pages/AdminLogin').then((m) => ({ default: m.AdminLogin })))
+const CustomerQuotationsPage = lazy(() => import('./pages/CustomerPortalPages').then((m) => ({ default: m.CustomerQuotationsPage })))
+const CustomerOrdersPage = lazy(() => import('./pages/CustomerPortalPages').then((m) => ({ default: m.CustomerOrdersPage })))
+const CustomerInstallationsPage = lazy(() => import('./pages/CustomerPortalPages').then((m) => ({ default: m.CustomerInstallationsPage })))
+const CustomerEquipmentPage = lazy(() => import('./pages/CustomerPortalPages').then((m) => ({ default: m.CustomerEquipmentPage })))
+const CustomerWarrantiesPage = lazy(() => import('./pages/CustomerPortalPages').then((m) => ({ default: m.CustomerWarrantiesPage })))
+const CustomerDocumentsPage = lazy(() => import('./pages/CustomerPortalPages').then((m) => ({ default: m.CustomerDocumentsPage })))
+const ReportingPage = lazy(() => import('./pages/ReportingPages').then((m) => ({ default: m.ReportingPage })))
 import { TechnicianDashboard } from './pages/TechnicianDashboard'
 import { SalesDashboard } from './pages/SalesDashboard'
 import { SurveyorDashboard } from './pages/SurveyorDashboard'
@@ -48,18 +70,13 @@ const FinanceDashboardPreview = import.meta.env.DEV
 const ManagementDashboardPreview = import.meta.env.DEV
   ? lazy(() => import('./pages/ManagementDashboard').then((module) => ({ default: module.ManagementDashboard })))
   : null
-const CustomerDashboardPage = lazy(() => import('./pages/CustomerDashboard').then((module) => ({ default: module.CustomerDashboard })))
 const CustomerDashboardPreviewPage = import.meta.env.DEV
   ? lazy(() => import('./pages/CustomerDashboardPreview').then((module) => ({ default: module.CustomerDashboardPreview })))
   : null
 
-function Foundation({ title, description, legacyPath }: { title: string; description: string; legacyPath?: string }) {
-  return <FoundationPage title={title} description={description} legacyPath={legacyPath} />
-}
-
 export function App() {
   return <QueryClientProvider client={queryClient}><ThemeProvider><AuthProvider><BrowserRouter>
-    <Routes>
+    <Suspense fallback={<div className="grid min-h-48 place-items-center text-sm text-muted">Loading SolarVerse…</div>}><Routes>
       <Route element={<PublicLayout />}>
         <Route index element={<HomePage />} />
         <Route path="about" element={<AboutPage />} />
@@ -82,10 +99,11 @@ export function App() {
       <Route element={<RequireSession audience="admin" loginPath="/admin/login" />}>
         <Route path="admin" element={<AdminLayout />}>
           <Route index element={<Navigate to="/admin/login" replace />} />
-          <Route path="dashboard" element={<AdminOverviewPage />} />
+          <Route path="dashboard" element={<ApiDashboardPage />} />
           <Route path="staff" element={<AdminStaffPage />} />
           <Route path="roles" element={<AdminRolesPage />} />
-          <Route path="customers" element={<AdminCustomersPage />} />
+          <Route path="customers" element={<CustomerManagementPage />} />
+          <Route path="reports" element={<ReportingPage />} />
           <Route path="settings" element={<AdminSettingsPage />} />
         </Route>
       </Route>
@@ -104,21 +122,22 @@ export function App() {
       <Route path="staff" element={<PortalLayout kind="staff" />}>
         <Route index element={<Navigate to="dashboard" replace />} />
         <Route path="dashboard" element={<StaffDashboard />} />
-        <Route path="customers" element={<Foundation title="Customers" description="Customer records and sites will appear here when the service contract is ready." />} />
-        <Route path="enquiries" element={<Foundation title="Enquiries" description="Review enquiries, interactions, and status history." legacyPath="/dashboard/enquiries" />} />
-        <Route path="surveys" element={<Foundation title="Site surveys" description="Schedule surveys, record assessments, and review decisions." legacyPath="/dashboard/survey" />} />
-        <Route path="catalog/products" element={<Foundation title="Product catalogue" description="Manage active products and serial tracking configuration." />} />
-        <Route path="catalog/packages" element={<Foundation title="Solar packages" description="Manage configurable packages and their product components." />} />
-        <Route path="quotations" element={<Foundation title="Quotations" description="Create and review immutable quotation revisions and line snapshots." legacyPath="/quote-builder" />} />
-        <Route path="orders" element={<Foundation title="Sales orders" description="Review order snapshots, status, and related payment records." legacyPath="/dashboard/orders" />} />
-        <Route path="inventory" element={<Foundation title="Inventory" description="Review locations, product balances, movements, and reservations." />} />
-        <Route path="dispatch" element={<Foundation title="Dispatch" description="Manage dispatch records, items, and delivery updates." />} />
-        <Route path="equipment" element={<Foundation title="Equipment" description="Trace equipment units, serials, and lifecycle events." legacyPath="/dashboard/scanner" />} />
-        <Route path="installations" element={<Foundation title="Installations" description="Schedule work, assign technicians, and record checklist progress." legacyPath="/dashboard/installation" />} />
-        <Route path="warranties" element={<Foundation title="Warranties" description="Review coverage linked to equipment and delivery records." legacyPath="/dashboard/warranty" />} />
-        <Route path="service/tickets" element={<Foundation title="Service tickets" description="Review customer service requests, assignments, activities, and parts." legacyPath="/dashboard/tickets" />} />
-        <Route path="finance/payments" element={<Foundation title="Payments" description="Review payment and refund records associated with orders." />} />
-        <Route path="reports" element={<Foundation title="Reports" description="Reporting views depend on backend data and agreed report definitions." />} />
+        <Route path="customers" element={<CustomerManagementPage />} />
+        <Route path="enquiries" element={<EnquiryManagementPage />} />
+        <Route path="sites" element={<SiteManagementPage />} />
+        <Route path="surveys" element={<SurveyManagementPage />} />
+        <Route path="catalog/products" element={<CatalogManagementPage />} />
+        <Route path="catalog/packages" element={<CatalogManagementPage />} />
+        <Route path="quotations" element={<QuotationManagementPage />} />
+        <Route path="orders" element={<OrderManagementPage />} />
+        <Route path="inventory" element={<InventoryManagementPage />} />
+        <Route path="dispatch" element={<DispatchManagementPage />} />
+        <Route path="equipment" element={<EquipmentManagementPage />} />
+        <Route path="installations" element={<InstallationManagementPage />} />
+        <Route path="warranties" element={<WarrantyManagementPage />} />
+        <Route path="service/tickets" element={<ServiceTicketManagementPage />} />
+        <Route path="finance/payments" element={<PaymentLedgerPage />} />
+        <Route path="reports" element={<ReportingPage />} />
         <Route path="settings" element={<Foundation title="Settings" description="Account and application settings will be connected after identity and permissions are confirmed." />} />
       </Route>
       </Route>
@@ -126,35 +145,34 @@ export function App() {
       <Route element={<RequireSession audience="customer" />}>
       <Route path="customer" element={<PortalLayout kind="customer" />}>
         <Route index element={<Navigate to="dashboard" replace />} />
-        <Route path="dashboard" element={<Suspense fallback={<div className="grid min-h-48 place-items-center text-sm text-muted">Loading customer dashboard…</div>}><CustomerDashboardPage /></Suspense>} />
-        <Route path="profile" element={<Foundation title="Profile" description="View and manage your contact information after customer account ownership is defined." />} />
-        <Route path="sites" element={<Foundation title="My solar sites" description="Review your registered sites when customer records are connected to the approved service contract." />} />
-        <Route path="enquiries" element={<Foundation title="Your enquiries" description="Review your submitted requests and survey progress." />} />
-        <Route path="quotations" element={<Foundation title="Your quotations" description="Review quotation revisions and available decisions." />} />
-        <Route path="orders" element={<Foundation title="Your orders" description="Follow order status, payment records, and delivery progress." />} />
-        <Route path="installations" element={<Foundation title="Your installations" description="Review installation scheduling, progress, and sign-off details." />} />
-        <Route path="equipment" element={<Foundation title="Your equipment" description="View equipment and serial information associated with your installation." />} />
-        <Route path="warranties" element={<Foundation title="Your warranties" description="Review coverage details for your equipment." />} />
-        <Route path="service" element={<Foundation title="Support" description="Review support history or request service when customer workflows are connected." />} />
-        <Route path="documents" element={<Foundation title="Your documents" description="Access files shared with you after secure document access is defined." />} />
+        <Route path="dashboard" element={<CustomerOverviewPage />} />
+        <Route path="profile" element={<CustomerProfilePage />} />
+        <Route path="sites" element={<CustomerSitesPage />} />
+        <Route path="enquiries" element={<CustomerEnquiriesPage />} />
+        <Route path="quotations" element={<CustomerQuotationsPage />} />
+        <Route path="orders" element={<CustomerOrdersPage />} />
+        <Route path="installations" element={<CustomerInstallationsPage />} />
+        <Route path="equipment" element={<CustomerEquipmentPage />} />
+        <Route path="warranties" element={<CustomerWarrantiesPage />} />
+        <Route path="service" element={<CustomerServicePage />} />
+        <Route path="documents" element={<CustomerDocumentsPage />} />
         <Route path="notifications" element={<Foundation title="Notifications" description="Notification storage and delivery are not defined in the current database proposal." />} />
       </Route>
       </Route>
 
-      {/* Existing demos remain reachable; Phase 1 does not replace their workflows. */}
-      <Route path="/quote-builder" element={<QuoteBuilder />} />
-      <Route element={<ProtectedRoute />}>
-        <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/dashboard/enquiries" element={<EnquiriesList />} />
-        <Route path="/dashboard/survey" element={<SiteSurvey />} />
-        <Route path="/dashboard/orders" element={<OrderConfirm />} />
-        <Route path="/dashboard/scanner" element={<SerialScanner />} />
-        <Route path="/dashboard/installation" element={<InstallationForm />} />
-        <Route path="/dashboard/warranty" element={<WarrantyLookup />} />
-        <Route path="/dashboard/tickets" element={<SupportTickets />} />
+      <Route element={<RequireSession audience="staff" />}>
+        <Route path="/quote-builder" element={<QuotationManagementPage />} />
+        <Route path="/dashboard" element={<Navigate to="/staff/dashboard" replace />} />
+        <Route path="/dashboard/enquiries" element={<EnquiryManagementPage />} />
+        <Route path="/dashboard/survey" element={<SurveyManagementPage />} />
+        <Route path="/dashboard/orders" element={<OrderManagementPage />} />
+        <Route path="/dashboard/scanner" element={<EquipmentManagementPage />} />
+        <Route path="/dashboard/installation" element={<InstallationManagementPage />} />
+        <Route path="/dashboard/warranty" element={<WarrantyManagementPage />} />
+        <Route path="/dashboard/tickets" element={<ServiceTicketManagementPage />} />
       </Route>
       <Route path="*" element={<div className="grid min-h-screen place-items-center bg-app-bg p-6 text-center"><div><Sun className="mx-auto size-10 text-brand" /><h1 className="mt-4 text-2xl font-bold">Page not found</h1><p className="mt-2 text-muted">That SolarVerse page isn’t available.</p><Link to="/" className="mt-5 inline-block font-semibold text-brand hover:underline">Return to home</Link></div></div>} />
-    </Routes>
+    </Routes></Suspense>
   </BrowserRouter></AuthProvider></ThemeProvider></QueryClientProvider>
 }
 

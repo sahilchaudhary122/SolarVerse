@@ -28,7 +28,7 @@ class CustomerInteraction(Base):
             "enquiry_id",
             "occurred_at",
         ),
-    )
+        {"schema": "solarverse_legacy"})
 
     id: Mapped[UUID] = mapped_column(
         PostgreSQLUUID(as_uuid=True),
@@ -37,7 +37,7 @@ class CustomerInteraction(Base):
     )
     enquiry_id: Mapped[UUID] = mapped_column(
         PostgreSQLUUID(as_uuid=True),
-        ForeignKey("enquiry.id", ondelete="RESTRICT"),
+        ForeignKey("solarverse_legacy.enquiry.id", ondelete="RESTRICT"),
         nullable=False,
     )
     interaction_type: Mapped[str] = mapped_column(String(40), nullable=False)

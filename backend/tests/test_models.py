@@ -15,14 +15,48 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.db.base import Base
-from app.models import Customer, Enquiry, Site
+from app.models import Customer, Enquiry, Site, EnquiryStatusHistory
+from app.models import SolarPackage, PackageComponent, SiteSurvey
+from app.models.canonical import MODEL_CLASSES, TABLES
 
 
 def test_model_imports_and_metadata_registration() -> None:
     registered_models = {mapper.class_ for mapper in Base.registry.mappers}
 
     assert {Customer, Site, Enquiry}.issubset(registered_models)
-    assert Base.metadata.tables.keys() >= {"customer", "site", "enquiry"}
+    assert Base.metadata.tables.keys() >= {
+        "solarverse_legacy.customer",
+        "solarverse_legacy.site",
+        "solarverse_legacy.enquiry",
+    }
+    assert EnquiryStatusHistory.__table__.fullname in Base.metadata.tables
+    assert len(TABLES) == 35
+    assert {table.name for table in TABLES.values()} == set(TABLES)
+    assert len(MODEL_CLASSES) == 35
+
+
+def test_enquiry_status_history_columns_and_index() -> None:
+    table = EnquiryStatusHistory.__table__
+    assert {"id", "enquiry_id", "from_status", "to_status", "changed_at", "reason"} == set(table.columns.keys())
+    assert {index.name for index in table.indexes} == {"ix_enquiry_history_enquiry_time"}
+
+
+def test_package_models_have_composite_key_and_business_checks() -> None:
+    assert SolarPackage.__table__.c.capacity_kw.nullable is False
+    assert PackageComponent.__table__.primary_key.columns.keys() == ["package_id", "product_id"]
+    assert {constraint.name for constraint in SolarPackage.__table__.constraints if isinstance(constraint, CheckConstraint)} == {
+        "ck_package_capacity", "ck_package_system_type"
+    }
+
+
+def test_survey_model_enforces_enquiry_site_pair() -> None:
+    constraints = {constraint.name: constraint for constraint in SiteSurvey.__table__.constraints}
+    survey_fk = constraints["fk_survey_enquiry_site"]
+    assert [column.name for column in survey_fk.columns] == ["enquiry_id", "site_id"]
+    assert [element.target_fullname for element in survey_fk.elements] == [
+        "solarverse_legacy.enquiry.id",
+        "solarverse_legacy.enquiry.site_id",
+    ]
 
 
 def test_foundational_table_names_and_primary_keys() -> None:
@@ -76,7 +110,7 @@ def test_site_columns_and_customer_foreign_key() -> None:
     assert site.c.country_code.type.length == 2
     assert site.c.country_code.server_default is not None
     customer_foreign_key = next(iter(site.c.customer_id.foreign_keys))
-    assert customer_foreign_key.target_fullname == "customer.id"
+    assert customer_foreign_key.target_fullname == "solarverse_legacy.customer.id"
     assert customer_foreign_key.ondelete == "RESTRICT"
     assert any(
         isinstance(constraint, ForeignKeyConstraint)
@@ -99,7 +133,7 @@ def test_enquiry_fields_and_relationship_foreign_keys() -> None:
     customer_foreign_key = next(
         foreign_key
         for foreign_key in enquiry.c.customer_id.foreign_keys
-        if foreign_key.target_fullname == "customer.id"
+        if foreign_key.target_fullname == "solarverse_legacy.customer.id"
     )
     assert customer_foreign_key.ondelete == "RESTRICT"
 
@@ -112,7 +146,7 @@ def test_enquiry_fields_and_relationship_foreign_keys() -> None:
     assert composite_foreign_key.column_keys == ["customer_id", "site_id"]
     assert [
         element.target_fullname for element in composite_foreign_key.elements
-    ] == ["site.customer_id", "site.id"]
+    ] == ["solarverse_legacy.site.customer_id", "solarverse_legacy.site.id"]
     assert composite_foreign_key.ondelete == "RESTRICT"
 
 

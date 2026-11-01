@@ -1,19 +1,22 @@
-import { createContext, useContext, useState } from 'react'
+import { useState } from 'react'
 import { Link, NavLink, Outlet, useNavigate } from 'react-router-dom'
-import { Menu, Sun, X, LayoutDashboard, Users, ClipboardList, Compass, Package, FileText, ShoppingBag, Boxes, Truck, ScanLine, Wrench, ShieldCheck, LifeBuoy, CreditCard, ChartNoAxesCombined, Settings, UserRound, Bell, type LucideIcon } from 'lucide-react'
+import { Menu, Sun, X, LayoutDashboard, Users, ClipboardList, Compass, Package, FileText, ShoppingBag, Boxes, Truck, ScanLine, Wrench, ShieldCheck, LifeBuoy, CreditCard, ChartNoAxesCombined, Settings, UserRound, Bell } from 'lucide-react'
+import { useQuery } from '@tanstack/react-query'
 import { Avatar, Button, IconButton, ThemeToggle } from '../components/ui'
 import { useAuth } from '../auth/AuthProvider'
+import { StaffRoleContext, type StaffLink } from '../auth/staffRoleContext'
 import type { StaffRole } from '../auth/authService'
-import { customerNotifications, customerProfile } from '../data/customerDemo'
+import { getMyCustomer } from '../lib/api'
+import { apiErrorMessage } from '../lib/apiClient'
 export type { StaffRole } from '../auth/authService'
 
 type PortalKind = 'staff' | 'customer'
-type StaffLink = { to: string; label: string; icon: LucideIcon; group: string }
 
 const staffLinks: StaffLink[] = [
   { to: '/staff/dashboard', label: 'Dashboard', icon: LayoutDashboard, group: 'Workspace' },
   { to: '/staff/customers', label: 'Customers', icon: Users, group: 'Customer work' },
   { to: '/staff/enquiries', label: 'Enquiries', icon: ClipboardList, group: 'Customer work' },
+  { to: '/staff/sites', label: 'Sites', icon: Sun, group: 'Customer work' },
   { to: '/staff/surveys', label: 'Site surveys', icon: Compass, group: 'Customer work' },
   { to: '/staff/catalog/products', label: 'Products', icon: Package, group: 'Sales' },
   { to: '/staff/catalog/packages', label: 'Solar packages', icon: Sun, group: 'Sales' },
@@ -51,22 +54,15 @@ const roleLabels: Record<StaffRole, string> = {
 
 // These are convenience shortcuts for the demo UI, not access rules or permissions.
 const roleShortcutLabels: Record<StaffRole, string[]> = {
-  system_admin: ['Customers', 'Enquiries', 'Settings', 'Reports'],
-  sales: ['Customers', 'Enquiries', 'Site surveys', 'Quotations', 'Sales orders'],
-  surveyor: ['Customers', 'Enquiries', 'Site surveys'],
-  sales_manager: ['Customers', 'Enquiries', 'Site surveys', 'Quotations', 'Sales orders', 'Reports'],
+  system_admin: ['Customers', 'Enquiries', 'Sites', 'Settings', 'Reports'],
+  sales: ['Customers', 'Enquiries', 'Sites', 'Site surveys', 'Quotations', 'Sales orders'],
+  surveyor: ['Customers', 'Enquiries', 'Sites', 'Site surveys'],
+  sales_manager: ['Customers', 'Enquiries', 'Sites', 'Site surveys', 'Quotations', 'Sales orders', 'Reports'],
   inventory_manager: ['Products', 'Solar packages', 'Inventory', 'Dispatch', 'Equipment'],
   technician: ['Installations', 'Equipment', 'Warranties', 'Service tickets'],
-  service_manager: ['Customers', 'Installations', 'Warranties', 'Service tickets'],
+  service_manager: ['Customers', 'Sites', 'Installations', 'Warranties', 'Service tickets'],
   finance: ['Sales orders', 'Payments', 'Reports'],
-  management: ['Customers', 'Quotations', 'Sales orders', 'Reports'],
-}
-
-const StaffRoleContext = createContext<{ role: StaffRole; roleLabel: string; shortcuts: StaffLink[] } | null>(null)
-export function useStaffRole() {
-  const context = useContext(StaffRoleContext)
-  if (!context) throw new Error('useStaffRole must be used within the staff portal')
-  return context
+  management: ['Customers', 'Sites', 'Quotations', 'Sales orders', 'Reports'],
 }
 
 function StaffNavigation({ mobileOpen, closeMobile, role, shortcuts }: { mobileOpen: boolean; closeMobile: () => void; role: StaffRole; shortcuts: StaffLink[] }) {
@@ -89,6 +85,8 @@ function StaffNavigation({ mobileOpen, closeMobile, role, shortcuts }: { mobileO
 
 export function PortalLayout({ kind }: { kind: PortalKind }) {
   const [mobileOpen, setMobileOpen] = useState(false)
+  const isStaff = kind === 'staff'
+  const customerProfile = useQuery({ queryKey: ['my-customer'], queryFn: getMyCustomer, enabled: !isStaff })
   const { principal, signOut } = useAuth()
   const navigate = useNavigate()
   const logout = () => {
@@ -96,7 +94,6 @@ export function PortalLayout({ kind }: { kind: PortalKind }) {
     setMobileOpen(false)
     navigate('/login', { replace: true })
   }
-  const isStaff = kind === 'staff'
   const staffRole: StaffRole = isStaff && principal?.kind === 'staff' ? principal.role : 'management'
   const portalTitle = isStaff ? 'Staff workspace' : 'Customer portal'
   const shortcuts = staffLinks.filter((link) => roleShortcutLabels[staffRole].includes(link.label))
@@ -108,7 +105,7 @@ export function PortalLayout({ kind }: { kind: PortalKind }) {
         {mobileOpen && <button type="button" aria-label="Close navigation" className="fixed inset-0 z-40 bg-black/50 lg:hidden" onClick={() => setMobileOpen(false)} />}
         <aside id="portal-navigation" className={`fixed inset-y-0 left-0 z-50 flex w-72 flex-col border-r border-border bg-surface transition-transform lg:translate-x-0 ${mobileOpen ? 'translate-x-0 visible' : '-translate-x-full invisible lg:visible'}`}>
           <div className="flex h-16 items-center justify-between border-b border-border px-5"><Link to="/customer/dashboard" onClick={() => setMobileOpen(false)} className="flex items-center gap-2 font-bold"><span className="grid size-8 place-items-center rounded-md bg-brand text-white dark:text-gray-950"><Sun aria-hidden="true" className="size-4" /></span>SolarVerse</Link><IconButton label="Close navigation" className="lg:hidden" onClick={() => setMobileOpen(false)}><X aria-hidden="true" className="size-5" /></IconButton></div>
-          <div className="border-b border-border px-4 pb-4 pt-5"><p className="px-1 text-xs font-bold uppercase tracking-wider text-muted">Customer portal</p><div className="mt-3 flex items-center gap-3 rounded-md bg-surface-raised p-3"><Avatar name={customerProfile.name} size="sm" /><div className="min-w-0"><p className="truncate text-sm font-semibold text-app-text">{customerProfile.name}</p><p className="truncate text-xs text-muted">{customerProfile.email}</p><p className="mt-1 text-[10px] font-semibold uppercase tracking-wide text-accent">Illustrative profile</p></div></div></div>
+          <div className="border-b border-border px-4 pb-4 pt-5"><p className="px-1 text-xs font-bold uppercase tracking-wider text-muted">Customer portal</p><div className="mt-3 flex items-center gap-3 rounded-md bg-surface-raised p-3"><Avatar name={customerProfile.data?.name || 'Customer account'} size="sm" /><div className="min-w-0"><p className="truncate text-sm font-semibold text-app-text">{customerProfile.data?.name || (customerProfile.isLoading ? 'Loading account…' : 'Customer account')}</p><p className="truncate text-xs text-muted">{customerProfile.data?.email || (customerProfile.isError ? apiErrorMessage(customerProfile.error) : '')}</p></div></div></div>
           <nav aria-label="Customer portal navigation" className="flex-1 space-y-1 overflow-y-auto px-3 pb-5">{links.map(({ to, label, icon: Icon }) => <NavLink key={to} to={to} onClick={() => setMobileOpen(false)} className={({ isActive }) => `flex min-h-10 items-center gap-3 rounded-md px-3 text-sm font-medium transition-colors focus-visible:outline-offset-2 ${isActive ? 'bg-brand/10 text-brand' : 'text-muted hover:bg-surface-raised hover:text-app-text'}`}><Icon aria-hidden="true" className="size-4 shrink-0" />{label}</NavLink>)}</nav>
           <div className="border-t border-border p-4"><Link to="/" className="text-sm text-muted hover:text-brand">← Public website</Link></div>
         </aside>
@@ -118,9 +115,8 @@ export function PortalLayout({ kind }: { kind: PortalKind }) {
         <div className="flex items-center gap-2"><IconButton label="Open navigation" aria-expanded={mobileOpen} aria-controls="portal-navigation" className="lg:hidden" onClick={() => setMobileOpen(true)}><Menu aria-hidden="true" className="size-5" /></IconButton><span className="text-sm font-semibold text-muted">{portalTitle}</span></div>
         <div className="flex items-center gap-2 sm:gap-3">
           {isStaff && <span className="hidden rounded-full bg-brand/10 px-3 py-2 text-xs font-semibold text-brand sm:inline">{roleLabels[staffRole]}</span>}
-          {!isStaff && <Link to="/customer/notifications" aria-label={`${customerNotifications.filter((notification) => !notification.read).length} unread demo notifications`} className="relative grid size-10 place-items-center rounded-md text-muted hover:bg-surface-raised hover:text-brand"><Bell aria-hidden="true" className="size-5" />{customerNotifications.some((notification) => !notification.read) && <span className="absolute right-1 top-1 grid size-4 place-items-center rounded-full bg-brand text-[10px] font-bold text-white dark:text-gray-950">{customerNotifications.filter((notification) => !notification.read).length}</span>}</Link>}
           <ThemeToggle />
-          <div className="flex items-center gap-2 rounded-full p-1" aria-label="Account area"><Avatar name={isStaff ? 'Account' : customerProfile.name} size="sm" /><span className="hidden pr-2 text-sm font-medium sm:inline">{isStaff ? 'Account' : customerProfile.name}</span></div>
+          <div className="flex items-center gap-2 rounded-full p-1" aria-label="Account area"><Avatar name={isStaff ? 'Account' : customerProfile.data?.name || 'Customer account'} size="sm" /><span className="hidden pr-2 text-sm font-medium sm:inline">{isStaff ? 'Account' : customerProfile.data?.name || 'Customer'}</span></div>
           <Button variant="secondary" onClick={logout} className="min-h-9 px-3 py-1 text-xs sm:text-sm">Log out</Button>
         </div>
       </header>

@@ -15,6 +15,8 @@ class Warranty(Base):
 
     __tablename__ = "warranty"
 
+    __table_args__ = {"schema": "solarverse_legacy"}
+
     id: Mapped[UUID] = mapped_column(
         PostgreSQLUUID(as_uuid=True),
         primary_key=True,
@@ -22,12 +24,12 @@ class Warranty(Base):
     )
     serial_number_id: Mapped[UUID] = mapped_column(
         PostgreSQLUUID(as_uuid=True),
-        ForeignKey("serial_number.id", ondelete="RESTRICT"),
+        ForeignKey("solarverse_legacy.serial_number.id", ondelete="RESTRICT"),
         nullable=False,
     )
     customer_id: Mapped[UUID] = mapped_column(
         PostgreSQLUUID(as_uuid=True),
-        ForeignKey("customer.id", ondelete="RESTRICT"),
+        ForeignKey("solarverse_legacy.customer.id", ondelete="RESTRICT"),
         nullable=False,
     )
     warranty_period_months: Mapped[int] = mapped_column(Integer, nullable=False, default=60, server_default=text("60"))

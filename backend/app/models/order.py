@@ -16,6 +16,8 @@ class Order(Base):
 
     __tablename__ = "orders"
 
+    __table_args__ = {"schema": "solarverse_legacy"}
+
     id: Mapped[UUID] = mapped_column(
         PostgreSQLUUID(as_uuid=True),
         primary_key=True,
@@ -23,17 +25,17 @@ class Order(Base):
     )
     quotation_id: Mapped[UUID] = mapped_column(
         PostgreSQLUUID(as_uuid=True),
-        ForeignKey("quotation.id", ondelete="RESTRICT"),
+        ForeignKey("solarverse_legacy.quotation.id", ondelete="RESTRICT"),
         nullable=False,
     )
     customer_id: Mapped[UUID] = mapped_column(
         PostgreSQLUUID(as_uuid=True),
-        ForeignKey("customer.id", ondelete="RESTRICT"),
+        ForeignKey("solarverse_legacy.customer.id", ondelete="RESTRICT"),
         nullable=False,
     )
     site_id: Mapped[UUID] = mapped_column(
         PostgreSQLUUID(as_uuid=True),
-        ForeignKey("site.id", ondelete="RESTRICT"),
+        ForeignKey("solarverse_legacy.site.id", ondelete="RESTRICT"),
         nullable=False,
     )
     total_amount: Mapped[Decimal] = mapped_column(Numeric(14, 2), nullable=False)

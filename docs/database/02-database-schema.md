@@ -1,18 +1,26 @@
+# SolarVerse PostgreSQL Database Schema — Version 1.2
 
-The schema is based on the Version 1.0 database documents and the 14 review areas recorded in `04-constraints-and-business-rules.md`. The current checkout contains README and database documentation, but no React frontend contracts or FastAPI source/models. Consequently, field names retain the existing snake_case contract vocabulary where available; exact request/response shapes must be checked with the frontend/backend owners before implementation.
+**PROPOSED – FINAL REVIEW VERSION – PENDING TEAM APPROVAL**
+This is the proposed v1.2 canonical schema specification. SQLAlchemy mappings and forward-only Alembic revision 006 implement these 35 tables. Revisions 001–005 remain unchanged; their 16 tables are preserved under `solarverse_legacy`. The implementation does not imply team approval. Version 1.0 is identified at `f2b449c`; Version 1.1 at `307a14e` in historical documentation, but Git history is unavailable in this workspace to verify those revisions.
+
+This DDL defines exactly 35 canonical tables. Canonical names are `app_user`, `sales_order`, and `service_ticket`. `site_survey.enquiry_id` is NOT NULL and participates in the composite enquiry/site FK. See `05-canonical-table-registry.md` for the table inventory.
+
+The schema is based on the Version 1.0 database documents and the 14 review areas recorded in `04-constraints-and-business-rules.md`. The current frontend/API implementation does not cover the full v1.2 schema. Field names retain snake_case; exact request/response shapes must be checked with the frontend/backend owners before implementation.
 
 ## PostgreSQL conventions
 
+- PostgreSQL; all UUID primary keys are generated in the application with Python `uuid.uuid4()` and passed to SQLAlchemy. Do not add PostgreSQL UUID-generation defaults such as `gen_random_uuid()` or `uuid_generate_v4()`.
 - Lowercase `snake_case` identifiers; `timestamptz` for instants; `date` for calendar dates; `numeric` for money/measurements; no floating-point money.
 - Currency uses a three-letter ISO 4217 code. Currency and tax/discount treatment remain team decisions.
 - Foreign keys default to `ON DELETE RESTRICT` unless explicitly documented otherwise. Preserve business history; prefer deactivate/archive over hard deletion.
 - Status values are `text` plus `CHECK` where an agreed value list exists. Enquiry statuses are preserved exactly from v1.0. Other modules' status lists and transitions need approval.
-- The DDL below is an executable-style PostgreSQL specification included in documentation, not a migration script. Apply only after team approval and review by backend/API owners.
+- The DDL below is the canonical specification used to create revision 006. Revision 006 also widens Alembic's version column to hold the existing long revision identifiers and preserves the prior schema in `solarverse_legacy`.
 
 ## Proposed DDL
 
 ```sql
 CREATE TABLE customer (
+    id uuid PRIMARY KEY,
     name varchar(160) NOT NULL,
     phone_e164 varchar(16) NOT NULL,
     email varchar(254),
@@ -560,5 +568,4 @@ Other rules require transaction/service logic: stock reservation availability un
 - Reviewer identity and authorization for survey approvals.
 - Checklist templates, required items, and completion gates.
 - Whether application updates all `updated_at` fields consistently; API field aliases and user-role vocabulary.
-- Whether app or database generates UUIDs; timestamp ownership; API field aliases.
 - Whether all proposed optional modules are needed for the hackathon MVP.

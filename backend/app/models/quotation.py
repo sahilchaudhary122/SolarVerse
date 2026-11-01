@@ -16,6 +16,8 @@ class Quotation(Base):
 
     __tablename__ = "quotation"
 
+    __table_args__ = {"schema": "solarverse_legacy"}
+
     id: Mapped[UUID] = mapped_column(
         PostgreSQLUUID(as_uuid=True),
         primary_key=True,
@@ -23,12 +25,12 @@ class Quotation(Base):
     )
     enquiry_id: Mapped[UUID] = mapped_column(
         PostgreSQLUUID(as_uuid=True),
-        ForeignKey("enquiry.id", ondelete="RESTRICT"),
+        ForeignKey("solarverse_legacy.enquiry.id", ondelete="RESTRICT"),
         nullable=False,
     )
     survey_id: Mapped[UUID] = mapped_column(
         PostgreSQLUUID(as_uuid=True),
-        ForeignKey("site_survey.id", ondelete="RESTRICT"),
+        ForeignKey("solarverse_legacy.site_survey.id", ondelete="RESTRICT"),
         nullable=False,
     )
     system_capacity_kw: Mapped[Decimal] = mapped_column(Numeric(8, 3), nullable=False)

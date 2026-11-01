@@ -72,7 +72,7 @@ const processSteps = [
 function EnquiryCTA({ dark = false }: { dark?: boolean }) {
   return <section className={`px-4 py-16 sm:px-6 sm:py-20 lg:px-8 ${dark ? 'bg-brand-panel text-white' : 'bg-surface-raised text-app-text'}`}>
     <div className="mx-auto flex max-w-7xl flex-col items-start justify-between gap-6 sm:flex-row sm:items-center">
-      <div className="max-w-2xl"><p className={`text-xs font-bold uppercase tracking-[.18em] ${dark ? 'text-accent' : 'text-accent'}`}>Start a conversation</p><h2 className="mt-2 text-3xl font-bold tracking-tight sm:text-4xl">Let’s explore what solar could look like for your site.</h2><p className={`mt-3 text-sm leading-relaxed sm:text-base ${dark ? 'text-white/70' : 'text-muted'}`}>Share a few details and use the enquiry form to start a discussion. The current form is a local demo and does not contact a server.</p></div>
+      <div className="max-w-2xl"><p className={`text-xs font-bold uppercase tracking-[.18em] ${dark ? 'text-accent' : 'text-accent'}`}>Start a conversation</p><h2 className="mt-2 text-3xl font-bold tracking-tight sm:text-4xl">Let’s explore what solar could look like for your site.</h2><p className={`mt-3 text-sm leading-relaxed sm:text-base ${dark ? 'text-white/70' : 'text-muted'}`}>Share your contact and site details. The enquiry form sends them to the SolarVerse API.</p></div>
       <Link to="/consultation" className="inline-flex min-h-10 shrink-0 items-center justify-center gap-2 rounded-md bg-brand px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-brand-strong focus-visible:outline-offset-2 dark:text-gray-950">Request a consultation <ArrowRight aria-hidden="true" className="size-4" /></Link>
     </div>
   </section>
@@ -146,11 +146,11 @@ export function ProjectsPage() {
 
 export function PackagesPage() {
   usePageMetadata('Solar Packages | SolarVerse', 'Discuss an on-grid or off-grid solar package with SolarVerse. Package details depend on site review and project requirements.')
-  return <section className="bg-app-bg py-14 sm:py-20"><div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8"><PageHeader title="Packages start with the right questions" description="System components and capacity depend on the site and project requirements. We do not publish fixed package contents here." eyebrow="Solar packages" /><Card className="p-6 sm:p-8"><h2 className="text-xl font-semibold">Discuss a system for your site</h2><p className="mt-2 leading-relaxed text-muted">Share your goals and whether you are considering an on-grid or off-grid approach. The enquiry form is a local demo and does not send data to a server.</p><Link to="/consultation" className="mt-5 inline-flex min-h-10 items-center justify-center gap-2 rounded-md bg-brand px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-brand-strong focus-visible:outline-offset-2 dark:text-gray-950">Start an enquiry <ArrowRight aria-hidden="true" className="size-4" /></Link></Card></div></section>
+  return <section className="bg-app-bg py-14 sm:py-20"><div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8"><PageHeader title="Packages start with the right questions" description="System components and capacity depend on the site and project requirements. We do not publish fixed package contents here." eyebrow="Solar packages" /><Card className="p-6 sm:p-8"><h2 className="text-xl font-semibold">Discuss a system for your site</h2><p className="mt-2 leading-relaxed text-muted">Share your goals and whether you are considering an on-grid or off-grid approach. A sales team member can create package and quotation records after reviewing the site.</p><Link to="/consultation" className="mt-5 inline-flex min-h-10 items-center justify-center gap-2 rounded-md bg-brand px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-brand-strong focus-visible:outline-offset-2 dark:text-gray-950">Start an enquiry <ArrowRight aria-hidden="true" className="size-4" /></Link></Card></div></section>
 }
 
 export function EnquiryPage() {
-  usePageMetadata('Enquiry | SolarVerse', 'Share your solar project details using the SolarVerse local demo enquiry form.')
+  usePageMetadata('Enquiry | SolarVerse', 'Send your solar project details to the SolarVerse team.')
   return <>
     <section className="border-b border-border bg-surface px-4 py-10 sm:px-6 sm:py-14 lg:px-8">
       <div className="mx-auto max-w-7xl"><PageHeader title="Start with a conversation" description="Tell us about your property and the solar approach you are exploring." eyebrow="Enquiry" /></div>

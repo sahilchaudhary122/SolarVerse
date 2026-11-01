@@ -1,6 +1,6 @@
 import { useEffect, useId, useRef, type ButtonHTMLAttributes, type HTMLAttributes, type InputHTMLAttributes, type ReactNode, type SelectHTMLAttributes, type TableHTMLAttributes, type TextareaHTMLAttributes } from 'react'
 import { AlertCircle, ChevronDown, Info, LoaderCircle, Moon, Sun, TriangleAlert, X } from 'lucide-react'
-import { useTheme } from '../app/providers/ThemeProvider'
+import { useTheme } from '../app/providers/themeContext'
 
 type ButtonVariant = 'primary' | 'secondary' | 'tertiary' | 'danger'
 type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & { variant?: ButtonVariant; loading?: boolean; icon?: ReactNode }

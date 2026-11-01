@@ -13,6 +13,9 @@ from app.models.serial_number import SerialNumber
 from app.models.installation import Installation
 from app.models.warranty import Warranty
 from app.models.support_ticket import SupportTicket
+from app.models.enquiry_status_history import EnquiryStatusHistory
+from app.models.solar_package import SolarPackage, PackageComponent
+from app.models.canonical import AppUser, SalesOrder, ServiceTicket, MODEL_CLASSES, TABLES
 
 __all__ = [
     "Customer",
@@ -28,4 +31,12 @@ __all__ = [
     "Installation",
     "Warranty",
     "SupportTicket",
+    "EnquiryStatusHistory",
+    "SolarPackage",
+    "PackageComponent",
+    "AppUser",
+    "SalesOrder",
+    "ServiceTicket",
+    "MODEL_CLASSES",
+    "TABLES",
 ]

@@ -14,6 +14,7 @@ from sqlalchemy import (
     Numeric,
     String,
     Text,
+    UniqueConstraint,
     and_,
     text,
 )
@@ -32,6 +33,7 @@ class Enquiry(Base):
 
     __tablename__ = "enquiry"
     __table_args__ = (
+        UniqueConstraint("id", "site_id", name="uq_enquiry_id_site"),
         CheckConstraint(
             "requested_capacity_kw IS NULL OR requested_capacity_kw > 0",
             name="ck_enquiry_requested_capacity_positive",
@@ -52,14 +54,14 @@ class Enquiry(Base):
         ),
         ForeignKeyConstraint(
             ["customer_id", "site_id"],
-            ["site.customer_id", "site.id"],
+            ["solarverse_legacy.site.customer_id", "solarverse_legacy.site.id"],
             name="fk_enquiry_site_owned_by_customer",
             ondelete="RESTRICT",
         ),
         Index("ix_enquiry_customer_id", "customer_id"),
         Index("ix_enquiry_site_id", "site_id"),
         Index("ix_enquiry_status_created_at", "status", "created_at"),
-    )
+        {"schema": "solarverse_legacy"})
 
     id: Mapped[UUID] = mapped_column(
         PostgreSQLUUID(as_uuid=True),
@@ -68,7 +70,7 @@ class Enquiry(Base):
     )
     customer_id: Mapped[UUID] = mapped_column(
         PostgreSQLUUID(as_uuid=True),
-        ForeignKey("customer.id", ondelete="RESTRICT"),
+        ForeignKey("solarverse_legacy.customer.id", ondelete="RESTRICT"),
         nullable=False,
     )
     site_id: Mapped[UUID] = mapped_column(

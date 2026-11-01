@@ -5,6 +5,7 @@ from functools import lru_cache
 
 from sqlalchemy import create_engine
 from sqlalchemy.engine import Engine
+from sqlalchemy.pool import StaticPool
 from sqlalchemy.orm import Session, sessionmaker
 
 from app.core.config import get_settings
@@ -12,6 +13,11 @@ from app.core.config import get_settings
 
 def create_database_engine(database_url: str) -> Engine:
     """Create a pooled SQLAlchemy engine for a PostgreSQL URL."""
+    if database_url.startswith("sqlite"):
+        options = {"connect_args": {"check_same_thread": False}}
+        if ":memory:" in database_url:
+            options["poolclass"] = StaticPool
+        return create_engine(database_url, pool_pre_ping=True, **options)
 
     return create_engine(
         database_url,

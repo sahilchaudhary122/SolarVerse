@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
-import { LayoutDashboard, Menu, Settings, ShieldCheck, Sun, Users, UserCog, X } from 'lucide-react'
+import { BarChart3, LayoutDashboard, Menu, Settings, ShieldCheck, Sun, Users, UserCog, X } from 'lucide-react'
 import { Avatar, Button, IconButton, ThemeToggle } from '../components/ui'
 import { useAuth } from '../auth/AuthProvider'
 
@@ -9,6 +9,7 @@ const adminLinks = [
   { to: '/admin/staff', label: 'Staff management', icon: UserCog },
   { to: '/admin/roles', label: 'Roles', icon: ShieldCheck },
   { to: '/admin/customers', label: 'Customers', icon: Users },
+  { to: '/admin/reports', label: 'Reports', icon: BarChart3 },
   { to: '/admin/settings', label: 'System settings', icon: Settings },
 ]
 

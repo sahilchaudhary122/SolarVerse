@@ -16,7 +16,7 @@ def test_customer_interaction_is_registered_in_metadata() -> None:
     assert CustomerInteraction in {
         mapper.class_ for mapper in Base.registry.mappers
     }
-    assert Base.metadata.tables["customer_interaction"] is CustomerInteraction.__table__
+    assert Base.metadata.tables["solarverse_legacy.customer_interaction"] is CustomerInteraction.__table__
 
 
 def test_customer_interaction_uuid_primary_key_configuration() -> None:
@@ -40,7 +40,7 @@ def test_customer_interaction_columns_and_foreign_key() -> None:
     assert table.c.created_at.nullable is False
 
     foreign_key = next(iter(table.c.enquiry_id.foreign_keys))
-    assert foreign_key.target_fullname == "enquiry.id"
+    assert foreign_key.target_fullname == "solarverse_legacy.enquiry.id"
     assert foreign_key.ondelete == "RESTRICT"
     assert any(
         isinstance(constraint, ForeignKeyConstraint)
@@ -83,7 +83,10 @@ def test_customer_interaction_relationships_configure_without_warnings() -> None
 
 
 def test_customer_interaction_type_check_is_enforced() -> None:
-    engine = create_engine("sqlite:///:memory:")
+    engine = create_engine(
+        "sqlite:///:memory:",
+        execution_options={"schema_translate_map": {"solarverse_legacy": None}},
+    )
 
     @event.listens_for(engine, "connect")
     def enable_sqlite_foreign_keys(

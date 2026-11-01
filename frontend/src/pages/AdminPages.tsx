@@ -1,10 +1,10 @@
-import { useMemo, useState } from 'react'
-import { useForm, type SubmitHandler } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
+import { useState, type FormEvent } from 'react'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Activity, Plus, Users, UserRoundCheck, UserRoundCog } from 'lucide-react'
-import { z } from 'zod'
-import { Badge, Button, Card, Input, Modal, PageHeader, Select, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../components/ui'
+import { Badge, Button, Card, EmptyState, ErrorState, Input, LoadingState, Modal, PageHeader, Select, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../components/ui'
 import { STAFF_ROLES, type StaffRole } from '../auth/authService'
+import { apiErrorMessage } from '../lib/apiClient'
+import { getAdminUsers, provisionUser, setUserActive, setUserRole } from '../lib/api'
 
 type WorkStatus = 'Not assigned' | 'Assigned' | 'In progress'
 type StaffRecord = { employeeId: string; name: string; email: string; mobile: string; role: StaffRole; active: boolean; workStatus: WorkStatus }
@@ -81,83 +81,32 @@ export function AdminOverviewPage() {
   </>
 }
 
-const staffSchema = z.object({
-  employeeName: z.string().trim().min(1, 'Enter the employee name'),
-  employeeId: z.string().trim().min(1, 'Enter an employee ID'),
-  email: z.string().trim().email('Enter a valid email address'),
-  mobile: z.string().trim().min(7, 'Enter a valid mobile number'),
-  role: z.enum(STAFF_ROLES),
-  accountStatus: z.enum(['active', 'inactive']),
-})
-type StaffFormValues = z.infer<typeof staffSchema>
-
-function StaffEditor({ record, existingEmployeeIds, onCancel, onSubmit }: { record: StaffRecord | null; existingEmployeeIds: string[]; onCancel: () => void; onSubmit: (values: StaffFormValues) => void }) {
-  const editorSchema = staffSchema.refine((values) => values.employeeId.toLowerCase() === record?.employeeId.toLowerCase() || !existingEmployeeIds.includes(values.employeeId.toLowerCase()), { path: ['employeeId'], message: 'This employee ID already exists in the demo list' })
-  const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<StaffFormValues>({
-    resolver: zodResolver(editorSchema),
-    defaultValues: record ? { employeeName: record.name, employeeId: record.employeeId, email: record.email, mobile: record.mobile, role: record.role, accountStatus: record.active ? 'active' : 'inactive' } : { employeeName: '', employeeId: '', email: '', mobile: '', role: 'sales', accountStatus: 'active' },
-  })
-  const submit: SubmitHandler<StaffFormValues> = (values) => onSubmit(values)
-  return <form noValidate onSubmit={handleSubmit(submit)} className="grid gap-4">
-    <DemoNotice>Staff account preview only. No credentials are created, and nothing is sent or saved. Employee work assignment is a separate workflow and is not part of account creation.</DemoNotice>
-    <Input label="Employee name" autoComplete="name" error={errors.employeeName?.message} {...register('employeeName')} />
-    <Input label="Employee ID" hint="Use a demo identifier in this preview; production IDs will be issued by FastAPI." error={errors.employeeId?.message} {...register('employeeId')} />
-    <Input label="Email / login ID" type="email" autoComplete="email" error={errors.email?.message} {...register('email')} />
-    <Input label="Mobile number" type="tel" autoComplete="tel" error={errors.mobile?.message} {...register('mobile')} />
-    <Select label="Assigned role" error={errors.role?.message} {...register('role')}>
-      {STAFF_ROLES.map((role) => <option key={role} value={role}>{roleLabels[role]} ({role})</option>)}
-    </Select>
-    <Select label="Account activation status" error={errors.accountStatus?.message} {...register('accountStatus')}><option value="active">Active</option><option value="inactive">Inactive</option></Select>
-    <div className="flex justify-end gap-2"><Button type="button" variant="secondary" onClick={onCancel}>Cancel</Button><Button type="submit" loading={isSubmitting}>{record ? 'Preview update' : 'Preview account creation'}</Button></div>
-  </form>
-}
-
 export function AdminStaffPage() {
-  const [staff, setStaff] = useState(initialStaff)
+  const client = useQueryClient()
   const [query, setQuery] = useState('')
   const [roleFilter, setRoleFilter] = useState('all')
   const [statusFilter, setStatusFilter] = useState('all')
   const [editorOpen, setEditorOpen] = useState(false)
-  const [editingRecord, setEditingRecord] = useState<StaffRecord | null>(null)
-  const [feedback, setFeedback] = useState('')
-  const visibleStaff = useMemo(() => staff.filter((person) => {
-    const matchesQuery = `${person.employeeId} ${person.name} ${person.email} ${person.mobile}`.toLowerCase().includes(query.toLowerCase())
-    const matchesRole = roleFilter === 'all' || person.role === roleFilter
-    const matchesStatus = statusFilter === 'all' || (statusFilter === 'active' ? person.active : !person.active)
-    return matchesQuery && matchesRole && matchesStatus
-  }), [query, roleFilter, staff, statusFilter])
-
-  const openCreate = () => { setEditingRecord(null); setEditorOpen(true); setFeedback('') }
-  const openEdit = (record: StaffRecord) => { setEditingRecord(record); setEditorOpen(true); setFeedback('') }
-  const handleSave = (values: StaffFormValues) => {
-    const previewRecord: StaffRecord = { employeeId: values.employeeId, name: values.employeeName, email: values.email, mobile: values.mobile, role: values.role, active: values.accountStatus === 'active', workStatus: editingRecord?.workStatus ?? 'Not assigned' }
-    if (editingRecord) setStaff((current) => current.map((person) => person.employeeId === editingRecord.employeeId ? previewRecord : person))
-    else setStaff((current) => [...current, previewRecord])
-    setEditorOpen(false)
-    setFeedback(`Demo ${editingRecord ? 'account update' : 'account creation'} previewed for ${previewRecord.name} (${previewRecord.employeeId}) with role ${roleLabels[previewRecord.role]}. No account or credentials were created on a server. Work status remains ${previewRecord.workStatus.toLowerCase()}.`)
-  }
-  const toggleActive = (person: StaffRecord) => {
-    setStaff((current) => current.map((record) => record.employeeId === person.employeeId ? { ...record, active: !record.active } : record))
-    setFeedback('The demo status changed in this browser only. No account status was changed on a server.')
-  }
+  const [error, setError] = useState<unknown>(null)
+  const staff = useQuery({ queryKey: ['admin-users', query, roleFilter, statusFilter], queryFn: () => getAdminUsers({ search: query || undefined, role: roleFilter === 'all' ? undefined : roleFilter, is_active: statusFilter === 'all' ? undefined : statusFilter === 'active' }) })
+  const create = useMutation({ mutationFn: provisionUser, onSuccess: () => { setEditorOpen(false); setError(null); void client.invalidateQueries({ queryKey: ['admin-users'] }) }, onError: setError })
+  const activate = useMutation({ mutationFn: ({ id, active }: { id: string; active: boolean }) => setUserActive(id, active), onSuccess: () => { setError(null); void client.invalidateQueries({ queryKey: ['admin-users'] }) }, onError: setError })
+  const changeRole = useMutation({ mutationFn: ({ id, role }: { id: string; role: string }) => setUserRole(id, role), onSuccess: () => { setError(null); void client.invalidateQueries({ queryKey: ['admin-users'] }) }, onError: setError })
+  function submit(event: FormEvent<HTMLFormElement>) { event.preventDefault(); const form = new FormData(event.currentTarget); create.mutate({ display_name: String(form.get('display_name')).trim(), email: String(form.get('email')).trim(), password: String(form.get('password')), role: String(form.get('role')) }) }
 
   return <>
-    <PageHeader eyebrow="Administration" title="Staff management" description="Review illustrative staff records and preview account form interactions." actions={<Button onClick={openCreate} icon={<Plus aria-hidden="true" className="size-4" />}>Create staff account</Button>} />
-    <DemoNotice>All employee names, demo IDs, contact details and work statuses below are illustrative. This is not a live SolarVerse employee directory.</DemoNotice>
-    {feedback && <div role="status" aria-live="polite" className="mb-5 rounded-md border border-success/30 bg-success/5 px-4 py-3 text-sm text-app-text">{feedback}</div>}
+    <PageHeader eyebrow="Administration" title="Staff management" description="Provision staff login accounts and manage account activation." actions={<Button onClick={() => { setError(null); setEditorOpen(true) }} icon={<Plus aria-hidden="true" className="size-4" />}>Create staff account</Button>} />
+    <p className="mb-5 text-sm text-muted">Credentials are submitted directly to the authorized API and are never displayed after submission.</p>
+    {error && <div className="mb-4"><ErrorState description={apiErrorMessage(error)} /></div>}
     <Card className="overflow-hidden">
       <div className="grid gap-3 border-b border-border p-4 md:grid-cols-[minmax(14rem,1fr)_auto_auto]">
         <Input label="Search staff" type="search" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Employee ID, name, email or mobile" />
         <Select label="Filter by role" value={roleFilter} onChange={(event) => setRoleFilter(event.target.value)}><option value="all">All roles</option>{STAFF_ROLES.map((role) => <option key={role} value={role}>{roleLabels[role]}</option>)}</Select>
         <Select label="Filter by status" value={statusFilter} onChange={(event) => setStatusFilter(event.target.value)}><option value="all">All statuses</option><option value="active">Active</option><option value="inactive">Inactive</option></Select>
       </div>
-      <Table>
-        <TableHead><tr><TableHeader>Employee ID</TableHeader><TableHeader>Employee / login ID</TableHeader><TableHeader>Mobile</TableHeader><TableHeader>Assigned role</TableHeader><TableHeader>Account status</TableHeader><TableHeader>Assigned work status</TableHeader><TableHeader><span className="sr-only">Actions</span></TableHeader></tr></TableHead>
-        <TableBody>{visibleStaff.map((person) => <TableRow key={person.employeeId}><TableCell className="whitespace-nowrap font-semibold">{person.employeeId}</TableCell><TableCell><div className="font-semibold">{person.name}</div><div className="mt-1 text-xs text-muted">{person.email}</div></TableCell><TableCell className="whitespace-nowrap">{person.mobile}</TableCell><TableCell><Badge tone="brand">{person.role}</Badge></TableCell><TableCell><Badge tone={person.active ? 'success' : 'neutral'}>{person.active ? 'Active' : 'Inactive'}</Badge></TableCell><TableCell><Badge tone={person.workStatus === 'Not assigned' ? 'neutral' : 'info'}>{person.workStatus}</Badge></TableCell><TableCell><div className="flex flex-wrap gap-2"><Button variant="tertiary" className="min-h-8 px-2 py-1 text-xs" onClick={() => openEdit(person)}>Edit</Button><Button variant="secondary" className="min-h-8 px-2 py-1 text-xs" onClick={() => toggleActive(person)}>{person.active ? 'Deactivate' : 'Activate'}</Button></div></TableCell></TableRow>)}</TableBody>
-      </Table>
-      {visibleStaff.length === 0 && <p className="p-8 text-center text-sm text-muted">No demo staff records match these filters.</p>}
+      {staff.isLoading ? <LoadingState /> : staff.isError ? <ErrorState description={apiErrorMessage(staff.error)} onRetry={() => void staff.refetch()} /> : staff.data?.length ? <Table><TableHead><tr><TableHeader>Account</TableHeader><TableHeader>Email</TableHeader><TableHeader>Role</TableHeader><TableHeader>Status</TableHeader><TableHeader>Created</TableHeader><TableHeader><span className="sr-only">Actions</span></TableHeader></tr></TableHead><TableBody>{staff.data.map((person) => <TableRow key={person.id}><TableCell className="font-semibold">{person.display_name}</TableCell><TableCell>{person.email}</TableCell><TableCell><Select label="Role" aria-label={`Role for ${person.email}`} value={person.role} disabled={changeRole.isPending} onChange={(event) => changeRole.mutate({ id: person.id, role: event.target.value })}>{STAFF_ROLES.map((role) => <option key={role} value={role}>{roleLabels[role]}</option>)}</Select></TableCell><TableCell><Badge tone={person.is_active ? 'success' : 'neutral'}>{person.is_active ? 'Active' : 'Inactive'}</Badge></TableCell><TableCell>{new Date(person.created_at).toLocaleDateString()}</TableCell><TableCell><Button variant="secondary" className="min-h-8 px-2 py-1 text-xs" disabled={activate.isPending} onClick={() => activate.mutate({ id: person.id, active: !person.is_active })}>{person.is_active ? 'Deactivate' : 'Activate'}</Button></TableCell></TableRow>)}</TableBody></Table> : <EmptyState title="No accounts found" description="Adjust filters or provision a staff account." />}
     </Card>
-    <Modal open={editorOpen} onClose={() => setEditorOpen(false)} title={editingRecord ? 'Edit staff account preview' : 'Create staff account preview'} description="This frontend preview does not create credentials or call an account service."><StaffEditor key={editingRecord?.employeeId ?? 'new'} record={editingRecord} existingEmployeeIds={staff.map((person) => person.employeeId.toLowerCase())} onCancel={() => setEditorOpen(false)} onSubmit={handleSave} /></Modal>
+    <Modal open={editorOpen} onClose={() => setEditorOpen(false)} title="Create staff account" description="The backend stores a password hash and returns no password data."><form onSubmit={submit} className="grid gap-4"><Input label="Display name" name="display_name" required maxLength={160} autoComplete="name" /><Input label="Email / login ID" type="email" name="email" required maxLength={254} autoComplete="email" /><Input label="Temporary password" type="password" name="password" required minLength={8} maxLength={128} autoComplete="new-password" hint="Use at least eight characters with letters and numbers." /><Select label="Role" name="role" required>{STAFF_ROLES.map((role) => <option key={role} value={role}>{roleLabels[role]}</option>)}</Select><div className="flex justify-end gap-2"><Button type="button" variant="secondary" onClick={() => setEditorOpen(false)}>Cancel</Button><Button type="submit" loading={create.isPending}>Create account</Button></div></form></Modal>
   </>
 }
 
@@ -186,11 +135,7 @@ export function AdminCustomersPage() {
 
 export function AdminSettingsPage() {
   return <>
-    <PageHeader eyebrow="Administration" title="System settings" description="A visual preview of possible workspace settings." />
-    <DemoNotice>Settings are presentation-only. These controls are disabled and do not change SolarVerse configuration.</DemoNotice>
-    <div className="grid gap-5 xl:grid-cols-2">
-      <Card className="space-y-4 p-5"><div><h2 className="font-semibold text-app-text">Organization profile</h2><p className="mt-1 text-sm text-muted">Example fields for a future settings workflow.</p></div><Input label="Organization name" defaultValue="SolarVerse" disabled /><Input label="Support email" defaultValue="Not configured" disabled /><Button disabled variant="secondary">Save organization details</Button></Card>
-      <Card className="space-y-4 p-5"><div><h2 className="font-semibold text-app-text">Workspace preferences</h2><p className="mt-1 text-sm text-muted">No live preference service is connected.</p></div><label className="flex items-center gap-3 text-sm text-muted"><input type="checkbox" disabled className="size-4 accent-brand" />Enable administrative activity summaries</label><label className="flex items-center gap-3 text-sm text-muted"><input type="checkbox" disabled className="size-4 accent-brand" />Require additional sign-in verification</label><Button disabled variant="secondary">Apply preferences</Button></Card>
-    </div>
+    <PageHeader eyebrow="Administration" title="System settings" description="Application settings are controlled by the deployment environment." />
+    <Card className="p-6"><h2 className="font-semibold text-app-text">No settings API is configured</h2><p className="mt-2 text-sm leading-relaxed text-muted">Database URL, allowed origins, signing secret, and runtime mode are backend environment configuration. This page does not expose or change secrets. Organization preferences and audit settings do not have a persistence contract yet.</p></Card>
   </>
 }

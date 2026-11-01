@@ -1,10 +1,12 @@
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Eye, EyeOff, Sun, UserRoundPlus } from 'lucide-react'
 import { useForm, type SubmitHandler } from 'react-hook-form'
 import { z } from 'zod'
 import { Button, Card, Checkbox, IconButton, Input } from '../components/ui'
+import { useAuth } from '../auth/AuthProvider'
+import { apiErrorMessage } from '../lib/apiClient'
 
 const registrationSchema = z.object({
   fullName: z.string().trim().min(1, 'Enter your full name'),
@@ -20,6 +22,8 @@ const registrationSchema = z.object({
 type RegistrationValues = z.infer<typeof registrationSchema>
 
 export function RegistrationPage() {
+  const navigate = useNavigate()
+  const { register: createAccount } = useAuth()
   const [passwordVisible, setPasswordVisible] = useState(false)
   const [confirmationVisible, setConfirmationVisible] = useState(false)
   const [notice, setNotice] = useState<string | null>(null)
@@ -28,8 +32,14 @@ export function RegistrationPage() {
     defaultValues: { fullName: '', email: '', mobile: '', password: '', confirmPassword: '', termsAccepted: false },
   })
 
-  const onSubmit: SubmitHandler<RegistrationValues> = () => {
-    setNotice('Customer registration is not connected yet. Your details were not sent or saved. Please use Sign in only if you already have an account.')
+  const onSubmit: SubmitHandler<RegistrationValues> = async (values) => {
+    setNotice(null)
+    try {
+      const principal = await createAccount({ full_name: values.fullName, email: values.email, mobile: values.mobile, password: values.password })
+      navigate(principal.kind === 'customer' ? '/customer/dashboard' : '/staff/dashboard', { replace: true })
+    } catch (error) {
+      setNotice(apiErrorMessage(error))
+    }
   }
 
   return <Card className="p-6 shadow-xl sm:p-8">
@@ -42,8 +52,7 @@ export function RegistrationPage() {
       <h1 className="text-2xl font-bold tracking-tight text-app-text">Create a customer account</h1>
       <p className="mt-2 text-sm leading-relaxed text-muted">This registration is for SolarVerse customers. Staff accounts are managed separately by an administrator.</p>
     </div>
-    <div role="status" className="mb-5 rounded-md border border-warning/30 bg-warning/5 p-3 text-sm leading-relaxed text-app-text">Registration integration is pending. Submitting this form will not send your details to a server or create an account.</div>
-    {notice && <div role="status" aria-live="polite" className="mb-5 rounded-md border border-info/30 bg-info/5 p-3 text-sm leading-relaxed text-app-text">{notice}</div>}
+    {notice && <div role="alert" aria-live="polite" className="mb-5 rounded-md border border-danger/30 bg-danger/5 p-3 text-sm leading-relaxed text-danger">{notice}</div>}
     <form noValidate onSubmit={handleSubmit(onSubmit)} className="grid gap-4">
       <Input label="Full name" autoComplete="name" error={errors.fullName?.message} {...register('fullName')} />
       <Input label="Email address" type="email" autoComplete="email" autoCapitalize="none" spellCheck={false} error={errors.email?.message} {...register('email')} />

@@ -15,6 +15,8 @@ class Installation(Base):
 
     __tablename__ = "installation"
 
+    __table_args__ = {"schema": "solarverse_legacy"}
+
     id: Mapped[UUID] = mapped_column(
         PostgreSQLUUID(as_uuid=True),
         primary_key=True,
@@ -22,12 +24,12 @@ class Installation(Base):
     )
     order_id: Mapped[UUID] = mapped_column(
         PostgreSQLUUID(as_uuid=True),
-        ForeignKey("orders.id", ondelete="RESTRICT"),
+        ForeignKey("solarverse_legacy.orders.id", ondelete="RESTRICT"),
         nullable=False,
     )
     assigned_technician_id: Mapped[UUID | None] = mapped_column(
         PostgreSQLUUID(as_uuid=True),
-        ForeignKey("users.id", ondelete="SET NULL"),
+        ForeignKey("solarverse_legacy.users.id", ondelete="SET NULL"),
         nullable=True,
     )
     scheduled_date: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)

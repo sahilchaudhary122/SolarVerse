@@ -4,7 +4,7 @@ from datetime import datetime
 from decimal import Decimal
 from uuid import UUID, uuid4
 
-from sqlalchemy import DateTime, ForeignKey, Numeric, String, Text, text
+from sqlalchemy import DateTime, ForeignKey, ForeignKeyConstraint, Numeric, String, Text, text
 from sqlalchemy.dialects.postgresql import UUID as PostgreSQLUUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -15,6 +15,12 @@ class SiteSurvey(Base):
     """Site survey record conducted at a customer site."""
 
     __tablename__ = "site_survey"
+    __table_args__ = (
+        ForeignKeyConstraint(
+            ["enquiry_id", "site_id"], ["solarverse_legacy.enquiry.id", "solarverse_legacy.enquiry.site_id"],
+            name="fk_survey_enquiry_site", ondelete="RESTRICT",
+        ),
+        {"schema": "solarverse_legacy"})
 
     id: Mapped[UUID] = mapped_column(
         PostgreSQLUUID(as_uuid=True),
@@ -23,12 +29,12 @@ class SiteSurvey(Base):
     )
     site_id: Mapped[UUID] = mapped_column(
         PostgreSQLUUID(as_uuid=True),
-        ForeignKey("site.id", ondelete="RESTRICT"),
+        ForeignKey("solarverse_legacy.site.id", ondelete="RESTRICT"),
         nullable=False,
     )
     enquiry_id: Mapped[UUID | None] = mapped_column(
         PostgreSQLUUID(as_uuid=True),
-        ForeignKey("enquiry.id", ondelete="SET NULL"),
+        ForeignKey("solarverse_legacy.enquiry.id", ondelete="SET NULL"),
         nullable=True,
     )
     roof_area_sqft: Mapped[Decimal | None] = mapped_column(Numeric(10, 2), nullable=True)
@@ -42,7 +48,7 @@ class SiteSurvey(Base):
     reviewer_notes: Mapped[str | None] = mapped_column(Text, nullable=True)
     reviewed_by: Mapped[UUID | None] = mapped_column(
         PostgreSQLUUID(as_uuid=True),
-        ForeignKey("users.id", ondelete="SET NULL"),
+        ForeignKey("solarverse_legacy.users.id", ondelete="SET NULL"),
         nullable=True,
     )
     created_at: Mapped[datetime] = mapped_column(

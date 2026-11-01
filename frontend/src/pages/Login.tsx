@@ -48,10 +48,6 @@ export function Login() {
 
       <div className="mb-6"><div className="mb-3 grid size-10 place-items-center rounded-md bg-surface-raised text-brand"><LockKeyhole aria-hidden="true" className="size-5" /></div><h1 className="text-2xl font-bold tracking-tight text-app-text">Sign in</h1><p className="mt-2 text-sm leading-relaxed text-muted">Use your SolarVerse account. Your authenticated account role will choose the correct portal.</p></div>
 
-      <div role="status" className="mb-5 rounded-md border border-warning/30 bg-warning/5 p-3 text-sm leading-relaxed text-app-text">
-        Authentication integration is pending. This form will not send credentials to a server until the FastAPI contract is available.
-      </div>
-
       {authError && <div role="alert" className="mb-5 rounded-md border border-danger/30 bg-danger/5 p-3 text-sm leading-relaxed text-danger">{authError}</div>}
 
       <form noValidate onSubmit={handleSubmit(onSubmit)} className="grid gap-4">

@@ -413,7 +413,7 @@ export function Dashboard() {
                     tickFormatter={(value) => `₹${value / 100000}L`}
                   />
                   <Tooltip 
-                    formatter={(value: any) => [`₹${Number(value).toLocaleString('en-IN')}`, 'Revenue']}
+                    formatter={(value) => [`₹${Number(value).toLocaleString('en-IN')}`, 'Revenue']}
                     contentStyle={{ backgroundColor: 'var(--sv-surface)', borderRadius: '1rem', border: '1px solid var(--sv-border)', color: 'var(--sv-text)' }}
                   />
                   <Bar dataKey="revenue" fill="var(--sv-brand)" radius={[8, 8, 0, 0]} />

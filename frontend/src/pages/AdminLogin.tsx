@@ -57,7 +57,6 @@ export function AdminLogin() {
 
       <div className="mb-6"><div className="mb-3 grid size-10 place-items-center rounded-md bg-surface-raised text-brand"><LockKeyhole aria-hidden="true" className="size-5" /></div><h1 className="text-2xl font-bold tracking-tight text-app-text">SolarVerse Administration</h1><p className="mt-2 text-sm leading-relaxed text-muted">Sign in with an administrator account to access the administration workspace.</p></div>
 
-      <div role="status" className="mb-5 rounded-md border border-warning/30 bg-warning/5 p-3 text-sm leading-relaxed text-app-text">Administrator authentication is pending FastAPI integration. No credentials are sent and no session is created by this page until the backend contract is available.</div>
       <div role="note" className="mb-5 rounded-md border border-border bg-surface-raised px-3 py-2.5 text-xs font-semibold uppercase tracking-wide text-muted">Authorized administrators only</div>
 
       {currentAccountIsNotAdmin && <div role="alert" className="mb-5 rounded-md border border-warning/30 bg-warning/5 p-3 text-sm leading-relaxed text-app-text"><p>The current signed-in account does not have the administrator role and cannot access administration.</p><Button type="button" variant="tertiary" className="mt-2 min-h-8 px-2 py-1 text-xs" onClick={signOut}>Sign out current account</Button></div>}
