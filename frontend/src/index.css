@@ -1,44 +1,16 @@
-@import "tailwindcss";
-@custom-variant dark (&:where(.dark, .dark *));
-
-html {
-  scroll-behavior: smooth;
-}
-
-body {
-  @apply bg-gray-50 text-gray-900 dark:bg-gray-950 dark:text-gray-100 font-sans antialiased;
-  background-image: radial-gradient(rgba(245, 158, 11, 0.08) 1px, transparent 1px);
-  background-size: 24px 24px;
-  margin: 0;
-}
-
+/* Compatibility styles for existing demo pages while they are redesigned later. */
 .glass-panel {
-  @apply bg-white/70 backdrop-blur-md border border-white/20 dark:bg-gray-900/70 dark:border-gray-700/50 shadow-xl;
+  border: 1px solid var(--sv-border);
+  background-color: var(--sv-surface);
+  box-shadow: var(--shadow-card);
 }
 
 @keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
 }
-
-.animate-fade-in-up {
-  animation: fadeInUp 0.8s ease-out forwards;
-}
-
-.delay-100 {
-  animation-delay: 100ms;
-}
-
-.delay-200 {
-  animation-delay: 200ms;
-}
-
-.delay-300 {
-  animation-delay: 300ms;
-}
+.animate-fade-in-up { animation: fadeInUp 300ms ease-out both; }
+.animate-fade-in { animation: fadeInUp 250ms ease-out both; }
+.delay-100 { animation-delay: 100ms; }
+.delay-200 { animation-delay: 200ms; }
+.delay-300 { animation-delay: 300ms; }

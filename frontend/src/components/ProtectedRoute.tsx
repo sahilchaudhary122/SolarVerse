@@ -1,8 +1,7 @@
-import { Navigate, Outlet } from 'react-router-dom'
+import { RequireSession } from '../auth/RequireSession'
 
 export function ProtectedRoute() {
-  const token = localStorage.getItem('token')
-  return token ? <Outlet /> : <Navigate to="/login" replace />
+  return <RequireSession audience="any" />
 }
 
 export default ProtectedRoute

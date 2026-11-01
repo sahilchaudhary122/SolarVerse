@@ -1,9 +1,9 @@
-# SolarVerse Data Dictionary — Database Design Version 1.1
+# SolarVerse Data Dictionary — Database Design Version 1.2
 
-**PROPOSED – PENDING TEAM APPROVAL**
-This dictionary describes every table and column in the proposed PostgreSQL DDL in `02-database-schema.md`. It is documentation, not implemented schema. Version 1.0 is preserved in Git history at commit `f2b449c`.
+**PROPOSED – FINAL REVIEW VERSION – PENDING TEAM APPROVAL**
+This dictionary describes all 35 canonical tables implemented by revision 006 from the PostgreSQL DDL in `02-database-schema.md`. Canonical names are `app_user`, `sales_order`, and `service_ticket`; surveys require an enquiry/site composite relationship. Sixteen prior tables are preserved under `solarverse_legacy` and are not part of the canonical dictionary. The table registry is `05-canonical-table-registry.md`. Versions 1.0 and 1.1 are identified in historical documentation as `f2b449c` and `307a14e`; Git history is unavailable in this workspace to verify those commits.
 
-`PK` = primary key; `FK` = foreign key; `NULL` = optional. `DEFAULT now()` records insertion time when omitted. UUID identifiers use the proposed `gen_random_uuid()` default. Exact API field casing/aliases need confirmation against frontend/backend source, which is not present in this documentation checkout.
+`PK` = primary key; `FK` = foreign key; `NULL` = optional. `DEFAULT now()` records insertion time when omitted. Every UUID primary key is generated in the Python application with `uuid.uuid4()`; PostgreSQL columns have no UUID-generation default. The existing frontend/backend implementation does not yet fully match this proposal; exact API field casing/aliases need implementation-owner confirmation.
 
 ## Customer, site, and enquiry
 
@@ -21,11 +21,11 @@ This dictionary describes every table and column in the proposed PostgreSQL DDL 
 - `address_line` (`text`, required), `city` (`varchar(100)`, nullable), `state` (`varchar(100)`, nullable), `postal_code` (`varchar(20)`, nullable): address parts.
 - `country_code` (`char(2)`, required, default `IN`): proposed ISO 3166-1 alpha-2 code.
 - `created_at` (`timestamptz`, required, default `now()`): record creation.
-- Unique (`id`, `customer_id`) supports an ownership-checking composite FK.
+- Unique (`customer_id`, `id`) supports the enquiry composite foreign key.
 
 ### ENQUIRY — initial customer request
 - `id` (`uuid`, PK): enquiry identifier.
-- `customer_id` (`uuid`, required) and `site_id` (`uuid`, required): composite FK to `site(id, customer_id)` ensures the selected site belongs to that customer.
+- `customer_id` (`uuid`, required) and `site_id` (`uuid`, required): composite FK (`customer_id`, `site_id`) -> `site(customer_id, id)` ensures the selected site belongs to that customer.
 - `requested_capacity_kw` (`numeric(8,3)`, nullable): customer-requested capacity in kW; positive when supplied.
 - `requested_system_type` (`varchar(20)`, nullable): proposed values `on-grid` or `off-grid`.
 - `monthly_bill` (`numeric(12,2)`, nullable): initial customer estimate; not the survey-confirmed amount.
@@ -37,7 +37,7 @@ This dictionary describes every table and column in the proposed PostgreSQL DDL 
 
 ### CUSTOMER_INTERACTION — contact/history entry
 - `id` (`uuid`, PK); `enquiry_id` (`uuid`, FK -> `enquiry.id`, required).
-- `interaction_type` (`varchar(40)`, required): contact/event category; allowed values need backend/team agreement.
+- `interaction_type` (`varchar(40)`, required; CHECK): exactly `call`, `email`, `visit`, `note`, `whatsapp`, or `sms`.
 - `notes` (`text`, nullable); `occurred_at` and `created_at` (`timestamptz`, required, default `now()`).
 
 ### ENQUIRY_STATUS_HISTORY — enquiry transition history
@@ -55,13 +55,26 @@ This dictionary describes every table and column in the proposed PostgreSQL DDL 
 - `monthly_bill` (`numeric(12,2)`, nullable, >= 0): survey-confirmed amount, separate from enquiry estimate.
 - `monthly_bill_currency_code` (`char(3)`, nullable): ISO currency for the survey-confirmed bill; present exactly when its amount is present.
 - `cable_distance_m` (`numeric(10,2)`, nullable, >= 0); `grid_suitability` (`boolean`, nullable).
-- `status` (`varchar(24)`, required, default `draft`); `submitted_at`, `approved_at` (`timestamptz`, nullable); `created_at` (`timestamptz`, required, default `now()`).
+- `status` (`varchar(24)`, required, default `draft`; CHECK allows exactly `draft`, `submitted`, `approved`, `rejected`); `is_current` (`boolean`, required, default `false`); `submitted_at`, `approved_at` (`timestamptz`, nullable); `created_at` (`timestamptz`, required, default `now()`).
+- CHECK requires `is_current = false` unless status is `approved`. A partial unique index allows at most one row with `is_current = true` and approved status per enquiry. Older approved surveys remain stored with `is_current = false`.
 - Unique (`id`, `enquiry_id`) supports quotation cross-check.
 
-### SITE_SURVEY_REVIEW — approval decision history
-- `id` (`uuid`, PK); `survey_id` (`uuid`, FK -> `site_survey.id`, required).
-- `decision` (`varchar(20)`, required; proposed values `approved`, `rejected`, `returned`).
-- `reviewer_label` (`text`, nullable pending agreed user/account identity); `reviewed_at` (`timestamptz`, required, default `now()`); `notes` (`text`, nullable).
+### APP_USER — authenticated SolarVerse user
+- `id` (`uuid`, PK): application-generated with Python `uuid.uuid4()`.
+- `display_name` (`varchar(160)`, required): current account display name; copied to `site_survey_review.reviewer_label` when a decision is recorded.
+- `email_normalized` (`varchar(254)`, required, unique): stored trimmed and lowercase; database CHECK rejects empty or non-normalized values. Application normalizes before persistence.
+- `password_hash` (`text`, required): password hash only; README specifies Argon2 via `pwdlib`, not plaintext passwords.
+- `role` (`varchar(40)`, required): authorization role; allowed role names need team/backend agreement.
+- `is_active` (`boolean`, required, default `true`): deactivate accounts instead of hard deletion.
+- `created_at`, `updated_at` (`timestamptz`, required, default `now()`): creation and last-update times; backend updates `updated_at`.
+
+### SITE_SURVEY_REVIEW — append-only approval decision history
+- `id` (`uuid`, PK); `survey_id` (`uuid`, FK -> `site_survey.id`, required, ON DELETE RESTRICT).
+- `reviewer_id` (`uuid`, FK -> `app_user.id`, required, ON DELETE RESTRICT): authenticated reviewer. Deactivated users remain referenced for history.
+- `reviewer_label` (`text`, required): display-name snapshot at review time, retained even if the user later changes their profile.
+- `decision` (`varchar(20)`, required; CHECK allows exactly `approved` or `rejected`); `reviewed_at` (`timestamptz`, required, default `now()`).
+- `rejection_reason` (`text`, nullable, required by CHECK for rejected decisions); `notes` (`text`, nullable).
+- Preserve each decision as a separate history row; corrections should append a new decision according to the approved workflow rather than erase history.
 
 ## Catalog, packages, and quotations
 
@@ -163,7 +176,7 @@ This dictionary describes every table and column in the proposed PostgreSQL DDL 
 ## Service, files, payments
 
 ### SERVICE_TICKET — complaint/repair request
-- `id` (`uuid`, PK); `customer_id` (`uuid`, FK -> `customer.id`, required); optional `site_id` (`uuid`) uses composite FK with customer; optional `equipment_unit_id` (`uuid`, FK -> `equipment_unit.id`).
+- `id` (`uuid`, PK); `customer_id` (`uuid`, FK -> `customer.id`, required); optional `site_id` (`uuid`) uses composite FK (`customer_id`, `site_id`) -> `site(customer_id, id)`; optional `equipment_unit_id` (`uuid`, FK -> `equipment_unit.id`).
 - `status` (`varchar(24)`, required; values need approval); `opened_at` (`timestamptz`, required, default `now()`); `closed_at` (`timestamptz`, nullable).
 
 ### SERVICE_TICKET_TECHNICIAN — service assignment junction

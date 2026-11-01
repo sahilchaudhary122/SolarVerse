@@ -1,0 +1,28 @@
+# Backend API reference
+
+Base path: `/api/v1`. Routes are registered by the FastAPI application; role access is enforced with bearer JWTs unless marked public. Request/response details are also available from the local OpenAPI document.
+
+| Area | Routes | Canonical persistence / notes |
+|---|---|---|
+| Health | `GET /health`, `GET /health/database` | Liveness and database readiness check. |
+| Authentication | `POST /auth/register`, `POST /auth/login`, `GET /auth/me`, `GET /auth/users`, `GET /auth/users/{id}`, `POST /auth/users`, `PATCH /auth/users/{id}/active`, `PATCH /auth/users/{id}/role` | `app_user`; configured password hashing and JWT. Directory, detail, provisioning, activation and role assignment require `system_admin`; directory responses omit password hashes. First admin provisioning is out-of-band; see `backend/README.md`. |
+| Customers/sites | `/customers`, `/sites` | Canonical customer/site CRUD and customer ownership via normalized email. |
+| Enquiries | `/enquiries`, `/enquiries/{id}`, `/enquiries/{id}/status`, `/enquiries/{id}/history` | Customer/site/enquiry/history records; customer access is ownership-filtered. Creation dedupe is best-effort because the schema has no idempotency key or unique customer email. |
+| Surveys | `/surveys`, `/surveys/{id}`, `/surveys/{id}/review` | Survey must reference an existing enquiry and the same site; reviews are recorded in `site_survey_review`. |
+| Products/packages | `/products`, `/products/{id}`, `/products/packages`, `/products/packages/{id}/components` | Product, solar package, and package components. Price and quantity-on-hand are not product columns. |
+| Quotations | `/quotations`, `/quotations/{id}`, `/quotations/{id}/approve` | Caller-supplied Decimal amounts are bounded by precision and nonnegative field validation; header and line arithmetic is not reconciled. Formula, tax, discount, currency and rounding rules remain unapproved, so these snapshots are not authoritative pricing. |
+| Orders/equipment | `/orders`, `/orders/{id}`, `/orders/serials`, `/orders/serials/{serial}` | `sales_order`, order lines, and unique equipment serials. Order conversion requires approved quotation and current approved survey. |
+| Inventory | `/inventory/locations`, `/inventory/balances`, `/inventory/movements`, `/inventory/reservations`, `/inventory/reservations/{id}/release` | Stock ledger and reservations use row locks/transactions; movements reject negative balance. |
+| Dispatch | `/dispatches` | Dispatch and dispatch-item records. Does not consume inventory; no approved policy was present to implement. |
+| Installations | `/installations`, `/installations/technicians`, `/installations/{id}`, `/installations/{id}/checklist`, `/installations/{id}/status` | Canonical scheduling, assignments, checklist and timestamps. |
+| Warranty/service | `/warranties`, `/warranties/lookup/{serial_number}`, `/support/tickets`, `/support/tickets/{id}`, `/support/tickets/{id}/activities`, `/support/tickets/{id}/status`, `/support/tickets/{id}/technicians` | `warranty`, `service_ticket`, service activity and technician association tables. Customer ticket access is ownership-filtered, with customer-visible activity restricted to opening/update notes; customers cannot change status or assignment. Assignment requires `system_admin` or `service_manager`. Ticket subject/description and direct warranty customer ownership are absent from schema. |
+| Payments | `/payments`, `/payments/{id}/refunds` | Ledger records only; no processor integration or cross-row refund cap. |
+| Files | `/files` | Database metadata only. No upload/download or Supabase Storage integration. |
+| Dashboard | `GET /dashboard` | Role-protected, database-derived canonical counts and payment record totals. |
+| Customer portal | `/customer-portal/dashboard`, `/customer-portal/quotations`, `/customer-portal/orders`, `/customer-portal/installations`, `/customer-portal/equipment`, `/customer-portal/warranties` and detail routes | Customer-only read APIs. Every record is filtered through the signed-in account's unique normalized-email match and its enquiry/order/site relationship. Technician names are exposed without phone numbers; checklist data is aggregate only. No customer quotation acceptance endpoint exists. |
+| Customer documents | `GET /customer-portal/documents` | Fails closed with HTTP 409. `file_asset` has no customer visibility/share marker or secure download contract; the route does not expose metadata or storage keys. No file bytes are uploaded or returned. |
+| Reports | `GET /reports/summary?date_from=YYYY-MM-DD&date_to=YYYY-MM-DD` | Role-scoped operational counts by status for customers, enquiries, quotations, orders, installations, service tickets and payment records; authorized inventory roles receive current quantity balances. Payment report does not calculate revenue or settlement. |
+
+## Compatibility notes
+
+Legacy API payloads using `users`, `orders`, or `support_ticket` names are not canonical API table names. `users` / `orders` / `support_ticket` legacy records remain archived under `solarverse_legacy`; no automatic copy or dual write occurs. Some old payload fields have no safe canonical equivalent; consult [integration status](INTEGRATION_STATUS.md). The frontend uses a typed API client for supported workflows. Customer access remains keyed by normalized email pending an approved relational identity migration. Browser automation availability and current results are in [TEST_RESULTS.md](TEST_RESULTS.md). PostgreSQL workflow tests are transaction-scoped and restricted to `solarverse_workflow_test`. API base URL is configured with `VITE_API_BASE_URL` (see `frontend/.env.example`).

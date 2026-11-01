@@ -1,19 +1,37 @@
-# Constraints and Business Rules — Database Design Version 1.1
+# Constraints and Business Rules — Database Design Version 1.2
 
-**PROPOSED – PENDING TEAM APPROVAL**
-Version 1.0 is preserved in Git history at commit `f2b449c`. This file records the 14 backend review areas and identifies which behavior is represented by PostgreSQL constraints, which needs transactional backend logic, and which remains unresolved. No new team approval is implied by this proposal.
+**PROPOSED – FINAL REVIEW VERSION – PENDING TEAM APPROVAL**
+Versions 1.0 and 1.1 are identified in historical documentation as `f2b449c` and `307a14e`; Git history is unavailable here to verify those commits. This file records the 14 backend review areas and identifies which behavior is represented by PostgreSQL constraints, which needs transactional backend logic, and which remains unresolved across the 35 implemented canonical tables. See `05-canonical-table-registry.md` for the table registry. PostgreSQL 16 constraint and schema checks passed on the isolated migration test database; this does not constitute team approval or production readiness.
 
 ## Status of decisions
 
 - **Preserved v1.0 decision:** the eight enquiry statuses are `new`, `contacted`, `survey_pending`, `qualified`, `quoted`, `converted`, `lost`, and `cancelled`. Do not rename or remove them without explicit team approval.
 - **Preserved v1.0 decisions:** UUID identifiers, phone stored normalized as E.164 but not globally unique, and the MVP enquiry flow creating a customer and site from a submitted enquiry. Other v1.0 rules remain candidates but are reconsidered below where the backend review requires clarification.
-- **Proposed additions:** tables and rules in v1.1 are pending team and backend owner approval. Existing v1.0 content remains recoverable from Git history; this update does not commit changes.
+- **Proposed additions:** tables and rules in v1.1/v1.2 remain pending team and backend owner approval. Earlier versions remain recoverable from Git history; this update does not commit changes.
+
+## Validation responsibility categories
+
+### PostgreSQL constraints and indexes
+
+Use primary/foreign keys, unique constraints, `CHECK` constraints, and indexes for row-local rules and references described in `02-database-schema.md`. These include the site/enquiry composite keys, normalized unique user email, six allowed interaction types, four survey statuses, survey-current check and partial unique index, bill/currency pairing, review reviewer FK, and restrictive deletion behavior. The partial index is:
+
+`CREATE UNIQUE INDEX ... ON site_survey(enquiry_id) WHERE is_current IS TRUE AND status = 'approved'`.
+
+PostgreSQL enforces that index atomically. It ensures **at most one** current approved survey per enquiry, not that one must exist. CHECK constraints do not query other tables or validate an entire workflow.
+
+### Transactional backend service logic
+
+Use a single transaction for operations that update several rows or depend on other rows: recording a survey review and matching survey status; superseding the current survey while approving a new one; creating or revising quotation/order snapshots; stock reservation and balance updates; dispatch and delivery; and payment/refund aggregation. Insert review history rather than updating/deleting past decisions; expose corrections as additional review records according to the approved workflow. Service logic must handle concurrent updates with row locks or another reviewed strategy and roll back all related changes on failure.
+
+### Application-level validation
+
+Use FastAPI/Pydantic and frontend validation for request shape, required fields, email normalization, password hashing/authentication, active-user and role authorization, UUID creation with Python `uuid.uuid4()`, and user-facing error messages. Application checks complement database constraints; they do not replace transactional integrity. Passwords must never be stored in plaintext.
 
 ## 1. Financial snapshots
 
 The proposed `quotation` and `quotation_line` tables preserve the quoted currency, amounts, descriptions, quantities, and unit prices for each revision. `sales_order` and `order_line` copy the accepted commercial values as an order snapshot, with an optional `source_quotation_line_id` for traceability. Catalog edits must not silently change historical quotes or orders.
 
-The DDL includes subtotal, discount, tax, and total amount fields, plus line-level snapshots. Amounts use `numeric`, not floating point. Formula consistency, rounding, currency, tax applicability, discount model, and whether totals are stored or computed require team approval. Until confirmed, backend transactions must calculate and persist a consistent snapshot and validate header/line reconciliation.
+The DDL includes subtotal, discount, tax, and total amount fields, plus line-level snapshots. Amounts use `numeric`, not floating point. Formula consistency, rounding, currency, tax applicability, discount model, and whether totals are stored or computed require team approval. Current API request contracts accept caller-supplied Decimal snapshots and enforce field precision/range; they do not reconcile header totals against lines or derive line totals. No calculation formula is approved in the proposal, so implementing one would invent commercial policy. This is an explicit implementation/approval blocker: do not use the current API as an authoritative priced quote until the team approves the formula and the API enforces it.
 
 Initial and survey-confirmed electricity bill values also carry a nullable ISO currency code paired with the amount. The supported currency/default for the frontend contract remains unresolved.
 
@@ -44,6 +62,16 @@ Enquiry status is the only status list preserved as agreed from v1.0. Its CHECK 
 The `enquiry_status_history` table records status changes. FastAPI/Pydantic should validate request values and service logic should validate allowed transitions and related workflow preconditions. Proposed v1.0 transition suggestions may be used as discussion material but are not expanded or changed here without team approval.
 
 Survey, survey-review, quotation, order, reservation, dispatch, installation, service-ticket, payment, and refund statuses do not have final agreed vocabularies in this proposal. Add checks only after agreeing values. `service_activity` can record `from_status` and `to_status`; database CHECKs cannot enforce transition graphs on their own. Other status history needs must be confirmed.
+
+### Site survey status and approval behavior
+
+The proposed `site_survey.status` values are exactly `draft`, `submitted`, `approved`, and `rejected`. The proposed transitions are `draft -> submitted`, `submitted -> approved|rejected`, and `rejected -> submitted` for a resubmission. An approved survey remains approved as a historical record; it is superseded by changing its `is_current` flag to false, not by rewriting its approval. Treat resubmission and whether submitted surveys may be edited as decisions requiring team approval.
+
+`is_current` defaults to false and may be true only for an approved survey. The partial unique index prevents two current approved surveys for one enquiry. It permits zero current approved surveys. When approving a replacement survey, in one transaction append the review, set the prior current survey to false, set the new survey to approved/current, and update related timestamps. The index is the final concurrency guard; service logic should lock the enquiry/current survey and translate a uniqueness conflict into a clear API response.
+
+For an approval or rejection transition, service logic must insert the matching decision row in `site_survey_review` in the same transaction as the `site_survey.status` change. Confirm that the acting user is active and authorized; copy their display name into `reviewer_label`. A rejected decision must provide a non-blank rejection reason.
+
+Every approval or rejection is retained as a separate `site_survey_review` row. `reviewer_id` is required and references `app_user` with `ON DELETE RESTRICT`; `reviewer_label` copies `app_user.display_name` at decision time. Rejection requires a non-empty `rejection_reason`. Deactivate user accounts rather than deleting them. Whether rejected surveys can be resubmitted and whether a review can be corrected by appending a later decision need team approval.
 
 ## 6. Payments and refunds
 
@@ -90,9 +118,9 @@ Transactional service logic is still needed for: financial total reconciliation;
 
 ## 11. Survey approvals
 
-`site_survey_review` stores approval/rejection/return decisions, timestamps, reviewer label, and notes; `site_survey` stores current status and timestamps. The proposed decisions are an implementation candidate, not a confirmed workflow. The README requires survey submission and approval before a final quotation.
+`site_survey_review` stores only `approved` or `rejected` decisions, the required `app_user` reviewer FK, a required reviewer-label snapshot, the decision timestamp, optional notes, and a required reason for rejection. `site_survey` has exactly four statuses and a current flag. These detailed workflow rules are proposed pending approval; the README requires survey submission and approval before a final quotation.
 
-**Unresolved:** approver identity/roles, allowed review decisions, resubmission behavior, whether several approvers are needed, whether review records are immutable, and whether a quotation may reference a survey after a later rejection. Backend must check survey approval before sending/accepting a quotation according to the team-approved rule.
+**Unresolved:** approved user roles/permissions, resubmission and editing policy, whether several approvers are needed, how review corrections are appended, and whether a quotation may reference a survey that is no longer current. Backend must check that a survey is approved (and apply the agreed current-survey rule) before sending/accepting a quotation.
 
 ## 12. File assets
 
@@ -102,17 +130,20 @@ Validate file size/type and authorization in the API. Object deletion requires a
 
 ## 13. Database standards and frontend/backend contracts
 
-- Use PostgreSQL UUID IDs, lowercase snake_case, `timestamptz`, `date`, and exact `numeric` for financial/measurement values as proposed. Choose UUID generation consistently between app and DB before migration.
+- Use PostgreSQL UUID IDs, lowercase snake_case, `timestamptz`, `date`, and exact `numeric` for financial/measurement values as proposed. Generate every UUID in the Python application with `uuid.uuid4()`; do not add database UUID-generation defaults.
 - Keep SQLAlchemy 2.x models, Pydantic request/response schemas, and Alembic migrations aligned with these names/types/nullability/constraints. Psycopg 3 is the documented PostgreSQL driver.
 - Validate values at React/Zod and FastAPI/Pydantic boundaries; database constraints remain the final integrity guard for local row rules.
 - Do not use phone as identity; preserve the v1.0 E.164 normalization behavior and no-unique-phone decision.
-- Repository checkout inspected for v1.1 contains no React/FastAPI source contracts. Exact JSON casing/aliases, error responses, and frontend nullability cannot be verified from current files and must be checked with Member 3 before implementation.
-- Dependency versions, UUID generation side, country default, currency support, and API field aliases need confirmation.
+- `app_user.email_normalized` is unique and must be trimmed/lowercase before storage; the DDL check rejects blank/non-normalized values. Use Argon2 password hashing via `pwdlib` as specified in the root README. `role` values and authorization policy require team/backend agreement. Set `is_active = false` instead of hard deleting users; review FKs restrict deletion. `display_name` is snapshotted into each review.
+- The current repository contains React/FastAPI source, but its request/response contracts do not yet implement all v1.2 entities. Verify API field casing/aliases, errors, nullability, and the data-preserving mappings in `docs/DATABASE_RECONCILIATION.md` with the implementation owner before migrations.
+- Dependency versions, `updated_at` ownership, country default, currency support, app-user role values, and API field aliases need confirmation. UUID generation is specified application-side with `uuid.uuid4()`.
 
 ## 14. Documentation consistency and Version 1.0 preservation
 
-- Version 1.1 is **PROPOSED – PENDING TEAM APPROVAL** across all five database documents.
-- Version 1.0 is preserved in Git history at commit `f2b449c`; no unrelated files or application code are part of this design update.
+- Version 1.2 is **PROPOSED – FINAL REVIEW VERSION – PENDING TEAM APPROVAL** across the five database design documents and canonical registry.
+- Canonical names in this proposal are `app_user`, `sales_order`, and `service_ticket`. Existing implementation names are compatibility concerns, not alternative names in the v1.2 schema.
+- `site_survey.enquiry_id` is `NOT NULL`; every survey must reference an existing enquiry and that enquiry's site using `(enquiry_id, site_id) -> enquiry(id, site_id)`. Standalone site surveys are prohibited.
+- Prior documentation identifies Version 1.0 at commit `f2b449c`; Git history is unavailable in the current workspace to verify it. This documentation freeze changes no application code or migrations.
 - `02-database-schema.md` is the exact DDL/type/nullability/constraint/index reference. `03-data-dictionary.md` explains those same fields. `01-er-diagram.md` must show every table and relationship. This file explains rules/approval decisions. `README.md` is the index/status page.
 - Any accepted schema change must be applied consistently across diagram, DDL, dictionary, rules, and index, then reviewed against API contracts.
 
@@ -125,3 +156,18 @@ Use `RESTRICT` by default as shown in DDL. Archive/deactivate business records i
 ## Remaining approval decisions
 
 Confirm the open decisions listed in `02-database-schema.md`, especially commercial amount formulas, discount/tax/currency policy, whether custom/non-catalog products are allowed in orders, partial delivery, warranty start date, reservation concurrency and location rules, checklist templates/gates, status vocabularies and transitions, refund handling, review identity, product/serial details, file policy, and actual React/FastAPI contracts. No pending point is silently treated as an approved business requirement.
+
+### Survey non-null migration preflight
+
+The existing implementation's `site_survey.enquiry_id` is nullable and does not prove that every existing survey references its own site's enquiry. Before making it `NOT NULL` and validating the composite FK, inspect existing rows without changing them:
+
+```sql
+SELECT id, site_id FROM site_survey WHERE enquiry_id IS NULL;
+
+SELECT ss.id, ss.enquiry_id, ss.site_id, e.site_id AS enquiry_site_id
+FROM site_survey AS ss
+LEFT JOIN enquiry AS e ON e.id = ss.enquiry_id
+WHERE e.id IS NULL OR e.site_id <> ss.site_id;
+```
+
+Any returned rows block the constraint migration. Resolve each row with an approved, auditable customer/business decision; do not delete rows or infer an enquiry automatically. A safe migration sequence is: inventory and back up affected rows; obtain an explicit mapping for every null/mismatched survey; apply reviewed updates in a separate data migration or maintenance procedure; verify both queries return zero rows; then add/validate the composite FK and set `enquiry_id NOT NULL`. Production execution requires a separate approval and rollback plan.

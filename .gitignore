@@ -1,6 +1,49 @@
+# Python
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+.coverage
+.coverage.*
+htmlcov/
+build/
+dist/
+*.egg-info/
+
+# Node.js / frontend
 node_modules/
 dist/
-build/
+coverage/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Environment variables and secrets
 .env
-.env.local
-.DS_Store
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+credentials.json
+service-account*.json
+
+# Databases and local database data
+*.sqlite
+*.sqlite3
+*.db
+*.dump
+*.backup
+*.sql.gz
+postgres-data/
+postgresql-data/
+database-data/
+local-db-data/
+
+# AI tool local settings, history, caches, and temporary files
+.gemini/
+.claude/

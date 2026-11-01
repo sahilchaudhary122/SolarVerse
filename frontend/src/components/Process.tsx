@@ -33,7 +33,7 @@ export function Process() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
         <div className="text-center max-w-3xl mx-auto mb-16">
-          <span className="text-emerald-600 dark:text-emerald-400 font-semibold text-sm uppercase tracking-wider">
+          <span className="text-brand dark:text-brand font-semibold text-sm uppercase tracking-wider">
             Simple 4-Step Journey
           </span>
           <h2 className="text-3xl sm:text-4xl font-extrabold text-gray-900 dark:text-white mt-2 tracking-tight">
@@ -55,10 +55,10 @@ export function Process() {
               >
                 <div>
                   <div className="flex items-center justify-between mb-6">
-                    <div className="w-14 h-14 rounded-2xl bg-emerald-50 dark:bg-emerald-950/50 flex items-center justify-center text-emerald-600 dark:text-emerald-400 group-hover:scale-110 transition-transform">
+                    <div className="w-14 h-14 rounded-2xl bg-brand-soft dark:bg-brand-soft/50 flex items-center justify-center text-brand dark:text-brand group-hover:scale-110 transition-transform">
                       <Icon className="w-7 h-7" />
                     </div>
-                    <span className="text-2xl font-black text-gray-200 dark:text-gray-800 group-hover:text-emerald-500/20 transition-colors">
+                    <span className="text-2xl font-black text-gray-200 dark:text-gray-800 group-hover:text-brand/20 transition-colors">
                       {item.step}
                     </span>
                   </div>

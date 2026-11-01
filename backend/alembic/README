@@ -1,0 +1,58 @@
+# SolarVerse Alembic migrations
+
+Alembic manages versioned PostgreSQL schema changes for the SQLAlchemy models.
+The migration environment reads `DATABASE_URL` through the existing
+`app.core.config.get_settings()` function. Credentials must remain in the local
+ignored `.env` file or another environment-provided configuration source.
+
+Run commands from `backend/` with the repository virtual environment active, or
+use the explicit interpreter path shown below:
+
+```bash
+cd backend
+PYTHONPATH=. ../.venv/bin/alembic current
+```
+
+## Future migration workflow
+
+After SQLAlchemy models have been implemented and registered with
+`app.db.base.Base.metadata`:
+
+```bash
+cd backend
+PYTHONPATH=. ../.venv/bin/alembic revision --autogenerate -m "Describe schema change"
+```
+
+Review the generated file under `alembic/versions/` manually. Confirm every
+table, constraint, index, foreign key, and deletion rule before applying it.
+Autogenerate is a starting point, not a substitute for migration review.
+
+Inspect pending revisions:
+
+```bash
+PYTHONPATH=. ../.venv/bin/alembic history
+PYTHONPATH=. ../.venv/bin/alembic heads
+PYTHONPATH=. ../.venv/bin/alembic current
+```
+
+Preview SQL without changing PostgreSQL:
+
+```bash
+PYTHONPATH=. ../.venv/bin/alembic upgrade head --sql
+```
+
+Apply a reviewed migration only after confirming the target database and backup
+or recovery procedure:
+
+```bash
+PYTHONPATH=. ../.venv/bin/alembic upgrade head
+```
+
+Revert one reviewed migration only when it is safe and explicitly approved:
+
+```bash
+PYTHONPATH=. ../.venv/bin/alembic downgrade -1
+```
+
+This scaffold intentionally contains no business-table migration revision.
+Never run destructive migration commands against an unintended database.

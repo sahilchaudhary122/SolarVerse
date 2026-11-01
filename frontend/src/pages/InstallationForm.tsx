@@ -23,7 +23,7 @@ export function InstallationForm() {
     const y = 'touches' in e ? e.touches[0].clientY - rect.top : e.nativeEvent.offsetY
     ctx.beginPath()
     ctx.moveTo(x, y)
-    ctx.strokeStyle = '#f59e0b'
+    ctx.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue('--sv-brand').trim()
     ctx.lineWidth = 2
     ctx.lineCap = 'round'
   }
@@ -67,7 +67,7 @@ export function InstallationForm() {
           <Link to="/dashboard" className="p-2 rounded-xl bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition">
             <ArrowLeft className="w-5 h-5 text-gray-700 dark:text-gray-300" />
           </Link>
-          <div className="w-10 h-10 rounded-xl bg-amber-500/10 flex items-center justify-center text-amber-500">
+          <div className="w-10 h-10 rounded-xl bg-brand/10 flex items-center justify-center text-brand">
             <Wrench className="w-6 h-6" />
           </div>
           <span className="text-xl font-black tracking-tight">Solar Installation Completion Form</span>
@@ -84,7 +84,7 @@ export function InstallationForm() {
       <main className="flex-1 max-w-4xl w-full mx-auto p-6 sm:p-10">
         <div className="glass-panel p-8 sm:p-10 rounded-3xl space-y-8">
           <div className="flex items-center space-x-3 pb-6 border-b border-gray-200/50 dark:border-gray-800">
-            <div className="w-12 h-12 rounded-2xl bg-amber-500/10 flex items-center justify-center text-amber-500">
+            <div className="w-12 h-12 rounded-2xl bg-brand/10 flex items-center justify-center text-brand">
               <Clock className="w-6 h-6" />
             </div>
             <div>
@@ -94,7 +94,7 @@ export function InstallationForm() {
           </div>
 
           {isSubmitted && (
-            <div className="p-4 rounded-2xl bg-green-500/10 border border-green-500/20 text-green-600 dark:text-green-400 font-semibold flex items-center space-x-3 animate-fade-in-up">
+            <div className="p-4 rounded-2xl bg-success/10 border border-success/20 text-success dark:text-success font-semibold flex items-center space-x-3 animate-fade-in-up">
               <CheckCircle2 className="w-6 h-6 shrink-0" />
               <span>Installation report submitted successfully! Telemetry synced with SolarVerse cloud.</span>
             </div>
@@ -110,7 +110,7 @@ export function InstallationForm() {
                     type="time"
                     value={startTime}
                     onChange={(e) => setStartTime(e.target.value)}
-                    className="w-full px-4 py-3 rounded-xl bg-white/50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 text-sm font-medium focus:outline-none focus:border-amber-500"
+                    className="w-full px-4 py-3 rounded-xl bg-white/50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 text-sm font-medium focus:outline-none focus:border-brand"
                     required
                   />
                 </div>
@@ -123,7 +123,7 @@ export function InstallationForm() {
                     type="time"
                     value={finishTime}
                     onChange={(e) => setFinishTime(e.target.value)}
-                    className="w-full px-4 py-3 rounded-xl bg-white/50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 text-sm font-medium focus:outline-none focus:border-amber-500"
+                    className="w-full px-4 py-3 rounded-xl bg-white/50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 text-sm font-medium focus:outline-none focus:border-brand"
                     required
                   />
                 </div>
@@ -133,11 +133,11 @@ export function InstallationForm() {
             {/* File Upload Input */}
             <div className="space-y-2">
               <label className="text-sm font-semibold text-gray-700 dark:text-gray-300 flex items-center gap-2">
-                <Upload className="w-4 h-4 text-amber-500" /> Upload Roof Photo
+                <Upload className="w-4 h-4 text-brand" /> Upload Roof Photo
               </label>
-              <div className="flex items-center justify-between p-4 rounded-2xl border-2 border-dashed border-gray-300 dark:border-gray-700 bg-white/30 dark:bg-gray-800/30 hover:border-amber-500 transition">
+              <div className="flex items-center justify-between p-4 rounded-2xl border-2 border-dashed border-gray-300 dark:border-gray-700 bg-white/30 dark:bg-gray-800/30 hover:border-brand transition">
                 <div className="flex items-center space-x-3">
-                  <div className="w-10 h-10 rounded-xl bg-amber-500/10 flex items-center justify-center text-amber-500">
+                  <div className="w-10 h-10 rounded-xl bg-brand/10 flex items-center justify-center text-brand">
                     <Upload className="w-5 h-5" />
                   </div>
                   <div>
@@ -149,7 +149,7 @@ export function InstallationForm() {
                   type="file"
                   accept="image/*"
                   onChange={(e) => setFileName(e.target.files?.[0]?.name || null)}
-                  className="file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-bold file:bg-amber-500 file:text-gray-900 hover:file:bg-amber-600 cursor-pointer text-xs text-gray-500"
+                  className="file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-bold file:bg-brand file:text-white dark:file:text-gray-950 hover:file:bg-brand-strong cursor-pointer text-xs text-gray-500"
                 />
               </div>
             </div>
@@ -189,7 +189,7 @@ export function InstallationForm() {
             <div className="pt-4">
               <button
                 type="submit"
-                className="w-full py-4 bg-amber-500 hover:bg-amber-600 text-gray-900 font-bold rounded-2xl shadow-xl hover:shadow-[0_0_25px_rgba(245,158,11,0.5)] transition-all duration-300 text-base flex items-center justify-center gap-2"
+                className="w-full py-4 bg-brand hover:bg-brand-strong text-white dark:text-gray-950 font-bold rounded-2xl shadow-xl hover:shadow-[0_0_25px_color-mix(in_srgb,var(--sv-brand)_50%,transparent)] transition-all duration-300 text-base flex items-center justify-center gap-2"
               >
                 <CheckCircle2 className="w-5 h-5" />
                 <span>Submit Installation Completion</span>

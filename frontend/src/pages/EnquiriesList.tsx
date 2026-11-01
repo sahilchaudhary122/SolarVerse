@@ -1,76 +1,37 @@
 import { useState } from 'react'
+import { useQuery } from '@tanstack/react-query'
 import { Link, useNavigate } from 'react-router-dom'
 import { ArrowLeft, Users, Phone, Sun, ArrowUpRight, Search, MapPin } from 'lucide-react'
 import type { EnquiryStatus } from '../types'
+import apiClient, { apiErrorMessage } from '../lib/apiClient'
 
 interface Enquiry {
   id: string
   customer_name: string
   phone: string
-  capacity_kw: number
+  capacity_kw: number | null
   status: EnquiryStatus
   location: string
-  created_at: string
+  created_at: string | null
+  city?: string | null
+  state?: string | null
 }
-
-const mockEnquiries: Enquiry[] = [
-  {
-    id: 'ENQ-2026-001',
-    customer_name: 'Rajesh Sharma',
-    phone: '+91 98765 43210',
-    capacity_kw: 5.5,
-    status: 'new',
-    location: 'Mumbai, MH',
-    created_at: '2026-10-28',
-  },
-  {
-    id: 'ENQ-2026-002',
-    customer_name: 'Priya Patel',
-    phone: '+91 91234 56789',
-    capacity_kw: 3.0,
-    status: 'contacted',
-    location: 'Ahmedabad, GJ',
-    created_at: '2026-10-29',
-  },
-  {
-    id: 'ENQ-2026-003',
-    customer_name: 'Amitabh Verma',
-    phone: '+91 99887 76655',
-    capacity_kw: 10.0,
-    status: 'survey_pending',
-    location: 'Delhi, DL',
-    created_at: '2026-10-30',
-  },
-  {
-    id: 'ENQ-2026-004',
-    customer_name: 'Sneha Reddy',
-    phone: '+91 97443 22110',
-    capacity_kw: 7.2,
-    status: 'converted',
-    location: 'Hyderabad, TS',
-    created_at: '2026-10-25',
-  },
-  {
-    id: 'ENQ-2026-005',
-    customer_name: 'Vikram Iyer',
-    phone: '+91 94421 88990',
-    capacity_kw: 4.5,
-    status: 'quoted',
-    location: 'Bengaluru, KA',
-    created_at: '2026-10-27',
-  },
-]
 
 export function EnquiriesList() {
   const navigate = useNavigate()
   const [searchTerm, setSearchTerm] = useState('')
   const [statusFilter, setStatusFilter] = useState<string>('all')
+  const enquiriesQuery = useQuery({
+    queryKey: ['enquiries'],
+    queryFn: async () => (await apiClient.get<Enquiry[]>('/enquiries')).data,
+  })
 
-  const filteredEnquiries = mockEnquiries.filter((enq) => {
+  const enquiries = enquiriesQuery.data ?? []
+  const filteredEnquiries = enquiries.filter((enq) => {
     const matchesSearch = 
       enq.customer_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       enq.phone.includes(searchTerm) ||
-      enq.location.toLowerCase().includes(searchTerm.toLowerCase())
+      `${enq.city ?? ''} ${enq.state ?? ''}`.toLowerCase().includes(searchTerm.toLowerCase())
     const matchesStatus = statusFilter === 'all' || enq.status === statusFilter
     return matchesSearch && matchesStatus
   })
@@ -82,9 +43,9 @@ export function EnquiriesList() {
       case 'contacted':
         return <span className="px-3 py-1 rounded-full bg-yellow-500/10 text-yellow-600 dark:text-yellow-400 font-bold text-xs border border-yellow-500/20">Contacted</span>
       case 'survey_pending':
-        return <span className="px-3 py-1 rounded-full bg-orange-500/10 text-orange-600 dark:text-orange-400 font-bold text-xs border border-orange-500/20">Survey Pending</span>
+        return <span className="px-3 py-1 rounded-full bg-warning/10 text-warning font-bold text-xs border border-warning/20">Survey Pending</span>
       case 'converted':
-        return <span className="px-3 py-1 rounded-full bg-green-500/10 text-green-600 dark:text-green-400 font-bold text-xs border border-green-500/20">Converted</span>
+        return <span className="px-3 py-1 rounded-full bg-success/10 text-success dark:text-success font-bold text-xs border border-success/20">Converted</span>
       case 'quoted':
         return <span className="px-3 py-1 rounded-full bg-purple-500/10 text-purple-600 dark:text-purple-400 font-bold text-xs border border-purple-500/20">Quoted</span>
       default:
@@ -100,7 +61,7 @@ export function EnquiriesList() {
           <Link to="/dashboard" className="p-2 rounded-xl bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition">
             <ArrowLeft className="w-5 h-5 text-gray-700 dark:text-gray-300" />
           </Link>
-          <div className="w-10 h-10 rounded-xl bg-amber-500/10 flex items-center justify-center text-amber-500">
+          <div className="w-10 h-10 rounded-xl bg-brand/10 flex items-center justify-center text-brand">
             <Users className="w-6 h-6" />
           </div>
           <div>
@@ -111,7 +72,7 @@ export function EnquiriesList() {
         <div className="flex items-center gap-3">
           <Link
             to="/quote-builder"
-            className="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-gray-900 font-bold text-sm rounded-xl shadow-md transition"
+            className="px-4 py-2 bg-brand hover:bg-brand-strong text-white dark:text-gray-950 font-bold text-sm rounded-xl shadow-md transition"
           >
             + New Quote
           </Link>
@@ -135,7 +96,7 @@ export function EnquiriesList() {
               placeholder="Search by customer, phone, location..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-12 pr-4 py-3 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 transition"
+              className="w-full pl-12 pr-4 py-3 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl text-sm focus:outline-none focus:ring-2 focus:ring-focus transition"
             />
           </div>
 
@@ -144,7 +105,7 @@ export function EnquiriesList() {
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="px-4 py-3 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-amber-500 transition capitalize"
+              className="px-4 py-3 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-focus transition capitalize"
             >
               <option value="all">All Statuses</option>
               <option value="new">New (Blue)</option>
@@ -155,6 +116,9 @@ export function EnquiriesList() {
             </select>
           </div>
         </div>
+
+        {enquiriesQuery.isLoading && <p role="status" className="rounded-xl border border-border bg-surface p-5 text-sm text-muted">Loading enquiries…</p>}
+        {enquiriesQuery.isError && <p role="alert" className="rounded-xl border border-danger/30 bg-danger/5 p-5 text-sm text-danger">{apiErrorMessage(enquiriesQuery.error)}</p>}
 
         {/* Data Table */}
         <div className="glass-panel rounded-3xl overflow-hidden border border-gray-200 dark:border-gray-800 shadow-xl">
@@ -179,9 +143,9 @@ export function EnquiriesList() {
                   </tr>
                 ) : (
                   filteredEnquiries.map((enq) => (
-                    <tr key={enq.id} className="hover:bg-amber-500/5 transition-colors group">
+                    <tr key={enq.id} className="hover:bg-brand/5 transition-colors group">
                       <td className="px-6 py-4 font-bold text-gray-900 dark:text-white flex items-center space-x-3">
-                        <div className="w-9 h-9 rounded-xl bg-amber-500/10 text-amber-500 flex items-center justify-center font-black shrink-0">
+                        <div className="w-9 h-9 rounded-xl bg-brand/10 text-brand flex items-center justify-center font-black shrink-0">
                           {enq.customer_name.charAt(0)}
                         </div>
                         <div>
@@ -191,17 +155,17 @@ export function EnquiriesList() {
                       </td>
                       <td className="px-6 py-4 text-gray-600 dark:text-gray-300 font-medium">
                         <span className="flex items-center gap-1.5">
-                          <Phone className="w-3.5 h-3.5 text-amber-500" /> {enq.phone}
+                          <Phone className="w-3.5 h-3.5 text-brand" /> {enq.phone}
                         </span>
                       </td>
-                      <td className="px-6 py-4 font-extrabold text-amber-600 dark:text-amber-400">
+                      <td className="px-6 py-4 font-extrabold text-brand dark:text-brand">
                         <span className="flex items-center gap-1">
-                          <Sun className="w-4 h-4" /> {enq.capacity_kw} kW
+                          <Sun className="w-4 h-4" /> {enq.capacity_kw === null ? 'Not specified' : `${enq.capacity_kw} kW`}
                         </span>
                       </td>
-                      <td className="px-6 py-4 text-gray-600 dark:text-gray-300">
+                  <td className="px-6 py-4 text-gray-600 dark:text-gray-300">
                         <span className="flex items-center gap-1 text-xs">
-                          <MapPin className="w-3.5 h-3.5 text-gray-400" /> {enq.location}
+                      <MapPin className="w-3.5 h-3.5 text-gray-400" /> {[enq.city, enq.state].filter(Boolean).join(', ') || '—'}
                         </span>
                       </td>
                       <td className="px-6 py-4">
@@ -210,7 +174,7 @@ export function EnquiriesList() {
                       <td className="px-6 py-4 text-right">
                         <button
                           onClick={() => navigate('/dashboard/survey')}
-                          className="px-4 py-2 rounded-xl bg-amber-500/10 hover:bg-amber-500 text-amber-600 hover:text-gray-900 font-bold text-xs transition flex items-center gap-1.5 ml-auto shadow-sm"
+                          className="px-4 py-2 rounded-xl bg-brand/10 hover:bg-brand text-brand hover:text-white dark:hover:text-gray-950 font-bold text-xs transition flex items-center gap-1.5 ml-auto shadow-sm"
                         >
                           <span>View / Survey</span>
                           <ArrowUpRight className="w-3.5 h-3.5" />

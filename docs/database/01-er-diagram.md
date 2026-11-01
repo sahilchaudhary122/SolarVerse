@@ -1,7 +1,7 @@
-# SolarVerse ER Diagram — Database Design Version 1.1
+# SolarVerse ER Diagram — Database Design Version 1.2
 
-**PROPOSED – PENDING TEAM APPROVAL**
-Version 1.0 is preserved in Git history at commit `f2b449c`. This diagram represents the proposed PostgreSQL schema in `02-database-schema.md`; it is not a finalized business contract. Optional tables may be out of hackathon scope.
+**PROPOSED – FINAL REVIEW VERSION – PENDING TEAM APPROVAL**
+Versions 1.0 and 1.1 are identified in historical documentation as `f2b449c` and `307a14e`; Git history is unavailable in this workspace to verify those commits. This diagram represents the v1.2 canonical PostgreSQL schema implemented by Alembic revision 006; it remains a proposed, unapproved business contract. It describes exactly 35 canonical tables, also listed in `05-canonical-table-registry.md`. Sixteen prior tables remain in `solarverse_legacy` for preservation and compatibility.
 
 ## Mermaid ER diagram
 
@@ -15,6 +15,7 @@ erDiagram
     ENQUIRY ||--o{ SITE_SURVEY : receives
     SITE ||--o{ SITE_SURVEY : inspected_at
     SITE_SURVEY ||--o{ SITE_SURVEY_REVIEW : has_review
+    APP_USER ||--o{ SITE_SURVEY_REVIEW : reviews
 
     ENQUIRY ||--o{ QUOTATION : receives_revisions
     SITE_SURVEY ||--o{ QUOTATION : supports
@@ -131,6 +132,7 @@ erDiagram
         numeric cable_distance_m
         boolean grid_suitability
         varchar status
+        boolean is_current
         timestamptz submitted_at
         timestamptz approved_at
         timestamptz created_at
@@ -138,10 +140,22 @@ erDiagram
     SITE_SURVEY_REVIEW {
         uuid id PK
         uuid survey_id FK
-        varchar decision
+        uuid reviewer_id FK
         text reviewer_label
+        varchar decision
         timestamptz reviewed_at
+        text rejection_reason
         text notes
+    }
+    APP_USER {
+        uuid id PK
+        varchar display_name
+        varchar email_normalized
+        text password_hash
+        varchar role
+        boolean is_active
+        timestamptz created_at
+        timestamptz updated_at
     }
     SOLAR_PACKAGE {
         uuid id PK
@@ -388,6 +402,12 @@ erDiagram
 ## Notes and unresolved cardinalities
 
 - `ENQUIRY` keeps the eight existing statuses: `new`, `contacted`, `survey_pending`, `qualified`, `quoted`, `converted`, `lost`, `cancelled`.
+- `SITE` has `UNIQUE(customer_id, id)`; `ENQUIRY(customer_id, site_id)` references it in that order. `ENQUIRY(id, site_id)` is unique so `SITE_SURVEY(enquiry_id, site_id)` can reference the matching enquiry/site pair.
+- Every `SITE_SURVEY` requires exactly one existing `ENQUIRY` and references the same `site_id` through the composite FK `(enquiry_id, site_id) -> enquiry(id, site_id)`. Standalone surveys are not allowed.
+- `CUSTOMER_INTERACTION.interaction_type` is limited to `call`, `email`, `visit`, `note`, `whatsapp`, or `sms`.
+- `SITE_SURVEY.status` is limited to `draft`, `submitted`, `approved`, or `rejected`. `is_current` can be true only when approved, and a partial unique index permits at most one current approved survey per enquiry. Earlier approved surveys remain as records with `is_current = false`.
+- `SITE_SURVEY_REVIEW.reviewer_id` references `APP_USER` with `ON DELETE RESTRICT`; `reviewer_label` snapshots the reviewer's display name. Each approval/rejection is retained in its own review row.
+- All UUID primary keys are generated in Python with `uuid.uuid4()`; the DDL has no UUID-generation defaults.
 - A quotation revision is a separate `QUOTATION` row, unique by (`enquiry_id`, `version`), with its own lines and historical prices.
 - Every order references one quotation; a quotation can currently lead to multiple orders because no unique constraint on `sales_order.quotation_id` is proposed.
 - Every payment references one order; each payment may have zero or more refund records. Refund totals must be checked transactionally against captured payment totals.
@@ -396,6 +416,7 @@ erDiagram
 - `FILE_ASSET` has three nullable parent FKs but a check requires exactly one to be populated.
 - `dispatch.delivered_at` represents delivery completion for the dispatch. Partial deliveries at different times are not fully represented; see unresolved decisions.
 - The database schema file is authoritative for exact types, nullability, named constraints, and indexes. This diagram must be updated alongside any approved schema change.
+- `APP_USER` provides normalized unique email, a password hash, role, active state, and timestamps. Deactivate accounts; historical review references prevent user deletion.
 
 ## Review areas represented
 
